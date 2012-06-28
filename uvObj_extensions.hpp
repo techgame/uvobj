@@ -8,7 +8,7 @@
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
 #pragma once
-#include "./uvobj_chan.hpp"
+#include "./uvObj_channels.hpp"
 
 #if defined(WIN32)
 #define snprintf _snprintf

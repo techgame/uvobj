@@ -8,11 +8,12 @@
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
 #pragma once
-#include "./uvObj_fs.hpp"
+#include "./uvObj_base.hpp"
 #include "./uvObj_loop.hpp"
 #include "./uvObj_handles.hpp"
-#include "./uvObj_chan.hpp"
+#include "./uvObj_channels.hpp"
 #include "./uvObj_extensions.hpp"
+#include "./uvObj_filesystem.hpp"
 
 namespace uvObj {
     /*
