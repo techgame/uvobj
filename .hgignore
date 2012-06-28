@@ -1,0 +1,7 @@
+syntax: glob 
+
+syntax: regexp 
+
+syntax: glob 
+*.orig
+
