@@ -12,6 +12,7 @@
 #include "./uvObj_loop.hpp"
 #include "./uvObj_handles.hpp"
 #include "./uvObj_chan.hpp"
+#include "./uvObj_extensions.hpp"
 
 namespace uvObj {
     /*
