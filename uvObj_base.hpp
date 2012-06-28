@@ -40,8 +40,6 @@ namespace uvObj {
         inline void delSelf() { delete self(); _ref_->data = NULL; }
 
         inline uv_loop_t* loop() { return _ref_->loop; }
-        inline operator uv_loop_t* () { return _ref_->loop; }
-
         void destroy() { delete _ref_; _ref_ = NULL; }
 
         uv_err_t last_error() { return uv_last_error(*this); }
