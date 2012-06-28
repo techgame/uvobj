@@ -33,9 +33,10 @@ namespace uvObj {
                 if (0 == uv_ip6_name(&src6, buf, sizeof(buf)))
                     return buf;
             return ""; }
-        std::string url(const char* schema="http", const char* path="") {
+        std::string url(const char* schema=NULL, const char* path="") {
             char buf[8192] = {0};
-            snprintf(buf, sizeof(buf), "%s://%s:%d%s", schema, name().c_str(), port(), path);
+            snprintf(buf, sizeof(buf), schema ? "%s://%s:%d%s" : "%s%s:%d%s",
+                    schema, name().c_str(), port(), path);
             return buf; }
         std::string format(const char* fmt="%s:%d") {
             char buf[1024] = {0};
@@ -73,6 +74,8 @@ namespace uvObj {
             return uv_udp_bind(*this, addr, flags); }
         int bind6(const struct sockaddr_in6& addr, unsigned flags) {
             return uv_udp_bind6(*this, addr, flags); }
+        std::string getsockurl(const char* schema="udp", const char* path="") {
+            return getsockname().url(schema, path); }
         IP getsockname() { IP addr; int len=sizeof(addr.raw);
             uv_udp_getsockname(*this, &addr.raw, &len);
             return addr; }
@@ -186,6 +189,10 @@ namespace uvObj {
             return uv_tcp_bind(*this, addr); }
         int bind6(const struct sockaddr_in6& addr) {
             return uv_tcp_bind6(*this, addr); }
+        std::string getsockurl(const char* schema="tcp", const char* path="") {
+            return getsockname().url(schema, path); }
+        std::string getpeerurl(const char* schema="tcp", const char* path="") {
+            return getpeername().url(schema, path); }
         IP getsockname() { IP addr; int len=sizeof(addr.raw);
             uv_tcp_getsockname(*this, &addr.raw, &len);
             return addr; }
