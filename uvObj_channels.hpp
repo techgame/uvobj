@@ -56,9 +56,8 @@ namespace uvObj {
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-    template <typename self_t=self_void_t>
-    struct UDP : Handle_t< uv_udp_t, self_t > {
-        typedef Handle_t< uv_udp_t, self_t > Base_t;
+    struct UDP : Handle_t< uv_udp_t > {
+        typedef Handle_t< uv_udp_t > Base_t;
         UDP(uv_loop_t* loop) : Base_t() { init(loop); }
         UDP() : Base_t() { init(); }
 
@@ -114,10 +113,9 @@ namespace uvObj {
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-    template <typename uv_t, typename self_t>
-    struct Stream_t : Handle_t< uv_t, self_t > {
-        typedef Handle_t< uv_t, self_t > Base_t;
-        typedef typename Base_t::Evt Evt;
+    template <typename uv_t>
+    struct Stream_t : Handle_t< uv_t > {
+        typedef Handle_t< uv_t > Base_t;
 
         explicit Stream_t(ref_mode_t m, uv_t* ref) : Base_t(m, ref) {}
         explicit Stream_t(ref_mode_t m, uv_stream_t* ref)
@@ -132,8 +130,6 @@ namespace uvObj {
 
         int listen(int backlog, uv_connection_cb cb) {
             return uv_listen(*this, backlog, cb); }
-        int listen(int backlog) {
-            return listen(backlog, Base_t::Evt::on_connection); }
         int accept(uv_stream_t* client) {
             return uv_accept(*this, client); }
 
@@ -141,12 +137,8 @@ namespace uvObj {
             return uv_is_readable(*this); }
         int read_start(uv_alloc_cb alloc_cb, uv_read_cb read_cb) {
             return uv_read_start(*this, alloc_cb, read_cb); }
-        int read_start() {
-            return read_start(Evt::on_alloc, Evt::on_read); }
         int read2_start(uv_alloc_cb alloc_cb, uv_read2_cb read_cb) {
             return uv_read2_start(*this, alloc_cb, read_cb); }
-        int read2_start() {
-            return read2_start(Evt::on_alloc, Evt::on_read2); }
         int read_stop() {
             return uv_read_stop(*this); }
 
@@ -163,9 +155,8 @@ namespace uvObj {
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-    template <typename self_t=self_void_t>
-    struct TCP : Stream_t< uv_tcp_t, self_t > {
-        typedef Stream_t< uv_tcp_t, self_t > Base_t;
+    struct TCP : Stream_t< uv_tcp_t > {
+        typedef Stream_t< uv_tcp_t > Base_t;
 
         explicit TCP(ref_mode_t m, uv_handle_t* ref) : Base_t(m, ref) { }
         explicit TCP(ref_mode_t m, uv_stream_t* ref) : Base_t(m, ref) { }
@@ -174,7 +165,9 @@ namespace uvObj {
 
         int init() { return init(NULL); }
         int init(uv_loop_t* loop) {
-            return uv_tcp_init(_as_loop(loop), *this); }
+            int res = uv_tcp_init(_as_loop(loop), *this);
+            printf("RES: %d loop: %p\n", res, loop);
+            return res; }
         int nodelay(bool enable) {
             return uv_tcp_nodelay(*this, enable); }
         int keepalive(bool enable, unsigned int delay) {
@@ -215,9 +208,8 @@ namespace uvObj {
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-    template <typename self_t=self_void_t>
-    struct TTY : Stream_t< uv_tty_t, self_t > {
-        typedef Stream_t< uv_tty_t, self_t > Base_t;
+    struct TTY : Stream_t< uv_tty_t > {
+        typedef Stream_t< uv_tty_t > Base_t;
         explicit TTY(ref_mode_t m, uv_stream_t* ref) : Base_t(m, ref) { }
         TTY(uv_loop_t* loop, uv_file fd, int readable) : Base_t()
         { init(loop, fd, readable); }
@@ -238,9 +230,8 @@ namespace uvObj {
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-    template <typename self_t=self_void_t>
-    struct Process : Handle_t< uv_process_t, self_t > {
-        typedef Handle_t< uv_process_t, self_t > Base_t;
+    struct Process : Handle_t< uv_process_t > {
+        typedef Handle_t< uv_process_t > Base_t;
         int spawn(const uv_process_options_t& options) {
             return spawn(NULL, options); }
         int spawn(uv_loop_t* loop, const uv_process_options_t& options) {
@@ -253,9 +244,8 @@ namespace uvObj {
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-    template <typename self_t=self_void_t>
-    struct Pipe : Stream_t< uv_pipe_t, self_t > {
-        typedef Stream_t< uv_pipe_t, self_t > Base_t;
+    struct Pipe : Stream_t< uv_pipe_t > {
+        typedef Stream_t< uv_pipe_t > Base_t;
         explicit Pipe(ref_mode_t m, uv_stream_t* ref) : Base_t(m, ref) { }
         Pipe(uv_loop_t* loop, int ipc=0) : Base_t() { init(loop, ipc); }
         Pipe(int ipc=0) : Base_t() { init(ipc); }

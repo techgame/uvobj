@@ -42,33 +42,5 @@ namespace uvObj {
         void on_timer(api_t& obj, int status) {}
     };
     */
-
-    template <typename endpoint_t>
-    struct Root {
-        typedef typename endpoint_t::api_t api_t;
-        api_t obj;
-
-        explicit Root(endpoint_t* ep=NULL) : obj() { _initSelf(ep); }
-
-        template <typename a1_t>
-        Root(a1_t a1) : obj(a1) { _initSelf(); }
-        template <typename a1_t, typename a2_t>
-        Root(a1_t a1, a2_t a2) : obj(a1, a2) { _initSelf(); }
-        template <typename a1_t, typename a2_t, typename a3_t>
-        Root(a1_t a1, a2_t a2, a3_t a3) : obj(a1, a2, a3) { _initSelf(); }
-        template <typename a1_t, typename a2_t, typename a3_t, typename a4_t>
-        Root(a1_t a1, a2_t a2, a3_t a3, a4_t a4) : obj(a1, a2, a3, a4) { _initSelf(); }
-
-        void _initSelf(endpoint_t* ep=NULL) {
-            if (!ep) ep = new endpoint_t;
-            obj.setSelf(ep); }
-
-        inline operator api_t* () { return &obj; }
-        inline api_t* operator->() { return &obj; }
-        inline api_t& operator()() { return obj; }
-
-        inline endpoint_t* ep() { return obj.self(); }
-        inline operator endpoint_t*() { return obj.self(); }
-    };
 }
 

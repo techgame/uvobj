@@ -28,11 +28,9 @@ extern char **environ;
 
 namespace uvObj {
 
-    template <typename self_t=self_void_t>
-    struct ProcessEx : Process< self_t > {
-        typedef Process< self_t > Base_t;
-        ProcessEx() : Base_t() { init(); }
-        ProcessEx(const char* file, const char* cwd=NULL) : Base_t()
+    struct ProcessEx : Process {
+        ProcessEx() : Process() { init(); }
+        ProcessEx(const char* file, const char* cwd=NULL) : Process()
         { init(); target(file, cwd); }
 
         void init() { ::memset(&opt, 0, sizeof(opt)); env(); }

@@ -11,9 +11,8 @@
 #include "./uvobj_base.hpp"
 
 namespace uvObj {
-    template <typename self_t=self_void_t>
-    struct Work : Ref_t< uv_work_t, self_t > {
-        typedef Ref_t< uv_work_t, self_t > Base_t;
+    struct Work : Ref_t< uv_work_t > {
+        typedef Ref_t< uv_work_t > Base_t;
         int queue(uv_work_cb work_cb, uv_after_work_cb after_cb) {
             return queue(NULL, work_cb, after_cb); }
         int queue(uv_loop_t* loop, uv_work_cb work_cb, uv_after_work_cb after_cb) {
@@ -22,9 +21,8 @@ namespace uvObj {
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-    template <typename self_t=self_void_t>
-    struct GetAddrInfo : Ref_t< uv_getaddrinfo_t, self_t > {
-        typedef Ref_t< uv_getaddrinfo_t, self_t > Base_t;
+    struct GetAddrInfo : Ref_t< uv_getaddrinfo_t > {
+        typedef Ref_t< uv_getaddrinfo_t > Base_t;
         int getaddrinfo(uv_getaddrinfo_cb getaddrinfo_cb,
                 const char* node, const char* service, const struct addrinfo* hints) {
             return getaddrinfo(NULL, getaddrinfo_cb, node, service, hints); }
@@ -37,9 +35,8 @@ namespace uvObj {
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-    template <typename self_t=self_void_t>
-    struct Poll : Handle_t< uv_poll_t, self_t > {
-        typedef Handle_t< uv_poll_t, self_t > Base_t;
+    struct Poll : Handle_t< uv_poll_t > {
+        typedef Handle_t< uv_poll_t > Base_t;
         Poll(uv_loop_t* loop, int fd) : Base_t() { init(loop, fd); }
         Poll(int fd) : Base_t() { init(fd); }
 
@@ -57,9 +54,8 @@ namespace uvObj {
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-    template <typename self_t=self_void_t>
-    struct Prepare : Handle_t< uv_prepare_t, self_t > {
-        typedef Handle_t< uv_prepare_t, self_t > Base_t;
+    struct Prepare : Handle_t< uv_prepare_t > {
+        typedef Handle_t< uv_prepare_t > Base_t;
         Prepare(uv_loop_t* loop) : Base_t() { init(loop); }
         Prepare() : Base_t() { init(); }
 
@@ -73,9 +69,8 @@ namespace uvObj {
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-    template <typename self_t=self_void_t>
-    struct Check : Handle_t< uv_check_t, self_t > {
-        typedef Handle_t< uv_check_t, self_t > Base_t;
+    struct Check : Handle_t< uv_check_t > {
+        typedef Handle_t< uv_check_t > Base_t;
         Check(uv_loop_t* loop) : Base_t() { init(loop); }
         Check() : Base_t() { init(); }
 
@@ -89,9 +84,8 @@ namespace uvObj {
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-    template <typename self_t=self_void_t>
-    struct Idle : Handle_t< uv_idle_t, self_t > {
-        typedef Handle_t< uv_idle_t, self_t > Base_t;
+    struct Idle : Handle_t< uv_idle_t > {
+        typedef Handle_t< uv_idle_t > Base_t;
         Idle(uv_loop_t* loop) : Base_t() { init(loop); }
         Idle() : Base_t() { init(); }
 
@@ -105,9 +99,8 @@ namespace uvObj {
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-    template <typename self_t=self_void_t>
-    struct Async : Handle_t< uv_async_t, self_t > {
-        typedef Handle_t< uv_async_t, self_t > Base_t;
+    struct Async : Handle_t< uv_async_t > {
+        typedef Handle_t< uv_async_t > Base_t;
         Async(uv_loop_t* loop, uv_async_cb cb) : Base_t() { init(loop, cb); }
         Async(uv_async_cb cb) : Base_t() { init(cb); }
 
@@ -119,9 +112,8 @@ namespace uvObj {
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-    template <typename self_t=self_void_t>
-    struct Timer : Handle_t< uv_timer_t, self_t > {
-        typedef Handle_t< uv_timer_t, self_t > Base_t;
+    struct Timer : Handle_t< uv_timer_t > {
+        typedef Handle_t< uv_timer_t > Base_t;
         Timer(uv_loop_t* loop) : Base_t() { init(loop); }
         Timer() : Base_t() { init(); }
 

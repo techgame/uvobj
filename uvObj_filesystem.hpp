@@ -11,22 +11,16 @@
 #include "./uvobj_base.hpp"
 
 namespace uvObj {
-    //uv_fs_event_cb fs_event_cb
-    // -- typedef void (*uv_fs_event_cb)(uv_fs_event_t* handle, const char* filename, int events, int status);
-    template <typename self_t=void*>
-    struct FS_Event : Handle_t< uv_fs_event_t, self_t > {
-        typedef Handle_t< uv_fs_event_t, self_t > Base_t;
+    struct FS_Event : Handle_t< uv_fs_event_t > {
+        typedef Handle_t< uv_fs_event_t > Base_t;
         int init(const char* filename, uv_fs_event_cb cb, int flags) {
             return init(NULL, filename, cb, flags); }
         int init(uv_loop_t* loop, const char* filename, uv_fs_event_cb cb, int flags) {
             return uv_fs_event_init(_as_loop(loop), *this, filename, cb, flags); } 
     };
 
-    //uv_fs_cb fs_cb
-    // -- typedef void (*uv_fs_cb)(uv_fs_t* req);
-    template <typename self_t=void*>
-    struct FS : Ref_t< uv_fs_t, self_t > {
-        typedef Ref_t< uv_fs_t, self_t > Base_t;
+    struct FS : Ref_t< uv_fs_t > {
+        typedef Ref_t< uv_fs_t > Base_t;
         uv_loop_t* _loop;
         FS(uv_loop_t* loop) : Base_t() { init(loop); }
         FS() : Base_t() { init(); }
