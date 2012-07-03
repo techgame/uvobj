@@ -13,7 +13,7 @@
 
 #include <uv.h>
 
-#include "./uvObj_callbacks.hpp"
+#include "./uvObj_events.hpp"
 
 namespace uvObj {
     inline uv_loop_t* _as_loop(uv_loop_t* loop=NULL) {
@@ -32,9 +32,9 @@ namespace uvObj {
         void destroy() { delete _ref_; _ref_ = NULL; }
 
         template <typename data_t>
-        inline data_t* data() { return reinterpret_cast<data_t*>(_ref_->data); }
+        inline data_t data() { return reinterpret_cast<data_t>(_ref_->data); }
         template <typename data_t>
-        inline void setData(data_t* data) { _ref_->data = data; }
+        inline void setData(data_t data) { _ref_->data = data; }
         template <typename data_t>
         inline void delData() { delete data<data_t>(); _ref_->data = NULL; }
 
@@ -63,6 +63,8 @@ namespace uvObj {
         int is_active() { return uv_is_active(asHandle()); }
         int is_closing() { return uv_is_closing(asHandle()); }
         int close(uv_close_cb cb) { return uv_close(asHandle(), cb); }
+        template <typename T>
+        int close(T* self) { return close(T::evt::on_close); }
 
         static uv_buf_t buf_create(unsigned int len) {
             return buf_init((char*)::malloc(len), len); }

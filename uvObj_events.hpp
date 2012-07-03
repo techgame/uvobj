@@ -12,212 +12,259 @@
 namespace uvObj {
     enum ref_mode_t { from_ref=3 };
 
-    template <typename T, typename uvobj_t>
+    template <typename self_t_, typename uvobj_t_>
     struct events_t {
-        inline static T* self(uvobj_t& obj) { return obj.template data<T>(); }
+        typedef self_t_ self_t;
+        typedef uvobj_t_ uvobj_t;
+
+        inline static self_t* self(uvobj_t& obj) { return obj.template data<self_t*>(); }
         template <typename uv_t>
-        inline static T* self(uv_t* ref) { return reinterpret_cast<T*>(ref->data); }
+        inline static self_t* self(uv_t* ref) { return reinterpret_cast<self_t*>(ref->data); }
 
         /* Handle-based Callbacks */
-        template < void (T::*fn)(uvobj_t& obj) >
+
+        // uv_close_cb
+        template < void (self_t::*fn)(uvobj_t& obj) >
         static void on_close(uv_handle_t* handle) {
             uvobj_t obj(from_ref, handle);
             (self(obj)->*fn)(obj); }
-        template < void (T::*fn)() >
+        template < void (self_t::*fn)() >
         static void on_close(uv_handle_t* handle) {
             (self(handle)->*fn)(); }
         static void on_close(uv_handle_t* handle) {
-            on_close<&T::on_close>(handle); }
+            on_close<&self_t::on_close>(handle); }
 
-        template < uv_buf_t (T::*fn)(uvobj_t& obj, size_t suggested_size) >
+        // uv_alloc_cb
+        template < uv_buf_t (self_t::*fn)(uvobj_t& obj, size_t suggested_size) >
         static uv_buf_t on_alloc(uv_handle_t* handle, size_t suggested_size) {
             uvobj_t obj(from_ref, handle);
             return (self(obj)->*fn)(obj, suggested_size); }
-        template < uv_buf_t (T::*fn)(size_t suggested_size) >
+        template < uv_buf_t (self_t::*fn)(size_t suggested_size) >
         static uv_buf_t on_alloc(uv_handle_t* handle, size_t suggested_size) {
             return (self(handle)->*fn)(suggested_size); }
         static uv_buf_t on_alloc(uv_handle_t* handle, size_t suggested_size) {
-            return on_alloc<&T::on_alloc>(handle, suggested_size); }
+            return on_alloc<&self_t::on_alloc>(handle, suggested_size); }
 
-        template < void (T::*fn)(uvobj_t& obj, ssize_t nread, uv_buf_t buf, struct sockaddr* addr, unsigned flags) >
+        // uv_udp_recv_cb
+        template < void (self_t::*fn)(uvobj_t& obj, ssize_t nread, uv_buf_t buf, struct sockaddr* addr, unsigned flags) >
         static void on_udp_recv(uv_udp_t* handle, ssize_t nread, uv_buf_t buf, struct sockaddr* addr, unsigned flags) {
             uvobj_t obj(from_ref, handle);
             (self(obj)->*fn)(obj, nread, buf, addr, flags); }
-        template < void (T::*fn)(ssize_t nread, uv_buf_t buf, struct sockaddr* addr, unsigned flags) >
+        template < void (self_t::*fn)(ssize_t nread, uv_buf_t buf, struct sockaddr* addr, unsigned flags) >
         static void on_udp_recv(uv_udp_t* handle, ssize_t nread, uv_buf_t buf, struct sockaddr* addr, unsigned flags) {
             (self(handle)->*fn)(nread, buf, addr, flags); }
         static void on_udp_recv(uv_udp_t* handle, ssize_t nread, uv_buf_t buf, struct sockaddr* addr, unsigned flags) {
-            on_udp_recv<&T::on_udp_recv>(handle, nread, buf, addr, flags); }
+            on_udp_recv<&self_t::on_udp_recv>(handle, nread, buf, addr, flags); }
 
-        template < void (T::*fn)(uvobj_t& obj, int status) >
+        // uv_connection_cb
+        template < void (self_t::*fn)(uvobj_t& obj, int status) >
         static void on_connection(uv_stream_t* server, int status) {
             uvobj_t obj(from_ref, server);
             (self(obj)->*fn)(obj, status); }
-        template < void (T::*fn)(int status) >
+        template < void (self_t::*fn)(int status) >
         static void on_connection(uv_stream_t* server, int status) {
             (self(server)->*fn)(status); }
         static void on_connection(uv_stream_t* server, int status) {
-            on_connection<&T::on_connection>(server, status); }
+            on_connection<&self_t::on_connection>(server, status); }
 
-        template < void (T::*fn)(uvobj_t& obj, ssize_t nread, uv_buf_t buf) >
+        // uv_read_cb
+        template < void (self_t::*fn)(uvobj_t& obj, ssize_t nread, uv_buf_t buf) >
         static void on_read(uv_stream_t* stream, ssize_t nread, uv_buf_t buf) {
             uvobj_t obj(from_ref, stream);
             (self(obj)->*fn)(obj, nread, buf); }
-        template < void (T::*fn)(ssize_t nread, uv_buf_t buf) >
+        template < void (self_t::*fn)(ssize_t nread, uv_buf_t buf) >
         static void on_read(uv_stream_t* stream, ssize_t nread, uv_buf_t buf) {
             (self(stream)->*fn)(nread, buf); }
         static void on_read(uv_stream_t* stream, ssize_t nread, uv_buf_t buf) {
-            on_read<&T::on_read>(stream, nread,  buf); }
+            on_read<&self_t::on_read>(stream, nread,  buf); }
 
-        template < void (T::*fn)(uvobj_t& obj, ssize_t nread, uv_buf_t buf, uv_handle_type pending) >
+        // uv_read2_cb
+        template < void (self_t::*fn)(uvobj_t& obj, ssize_t nread, uv_buf_t buf, uv_handle_type pending) >
         static void on_read2(uv_pipe_t* pipe, ssize_t nread, uv_buf_t buf, uv_handle_type pending) {
             uvobj_t obj(from_ref, pipe);
             (self(obj)->*fn)(obj, nread, buf, pending); }
-        template < void (T::*fn)(ssize_t nread, uv_buf_t buf, uv_handle_type pending) >
+        template < void (self_t::*fn)(ssize_t nread, uv_buf_t buf, uv_handle_type pending) >
         static void on_read2(uv_pipe_t* pipe, ssize_t nread, uv_buf_t buf, uv_handle_type pending) {
             (self(pipe)->*fn)(nread, buf, pending); }
         static void on_read2(uv_pipe_t* pipe, ssize_t nread, uv_buf_t buf, uv_handle_type pending) {
-            on_read2<&T::on_read2>(pipe, nread, buf, pending); }
+            on_read2<&self_t::on_read2>(pipe, nread, buf, pending); }
 
-        template < void (T::*fn)(uvobj_t& obj, int exit_status, int term_signal) >
+        // uv_exit_cb
+        template < void (self_t::*fn)(uvobj_t& obj, int exit_status, int term_signal) >
         static void on_exit(uv_process_t* proc, int exit_status, int term_signal) {
             uvobj_t obj(from_ref, proc);
             (self(obj)->*fn)(obj, exit_status, term_signal); }
-        template < void (T::*fn)(int exit_status, int term_signal) >
+        template < void (self_t::*fn)(int exit_status, int term_signal) >
         static void on_exit(uv_process_t* proc, int exit_status, int term_signal) {
             (self(proc)->*fn)(exit_status, term_signal); }
         static void on_exit(uv_process_t* proc, int exit_status, int term_signal) {
-            on_exit<&T::on_exit>(proc, exit_status, term_signal); }
+            on_exit<&self_t::on_exit>(proc, exit_status, term_signal); }
 
-        template < void (T::*fn)(uvobj_t& obj, int status, struct addrinfo* res) >
+        // uv_getaddrinfo_cb
+        template < void (self_t::*fn)(uvobj_t& obj, int status, struct addrinfo* res) >
         static void on_getaddrinfo(uv_getaddrinfo_t* handle, int status, struct addrinfo* res) {
             uvobj_t obj(from_ref, handle);
             (self(obj)->*fn)(obj, status, res); }
-        template < void (T::*fn)(int status, struct addrinfo* res) >
+        template < void (self_t::*fn)(int status, struct addrinfo* res) >
         static void on_getaddrinfo(uv_getaddrinfo_t* handle, int status, struct addrinfo* res) {
             (self(handle)->*fn)(status, res); }
         static void on_getaddrinfo(uv_getaddrinfo_t* handle, int status, struct addrinfo* res) {
-            on_getaddrinfo<&T::on_getaddrinfo>(handle, status, res); }
+            on_getaddrinfo<&self_t::on_getaddrinfo>(handle, status, res); }
 
-        template < void (T::*fn)(uvobj_t& obj, int status, int events) >
+        // uv_poll_cb
+        template < void (self_t::*fn)(uvobj_t& obj, int status, int events) >
         static void on_poll(uv_poll_t* handle, int status, int events) {
             uvobj_t obj(from_ref, handle);
             (self(obj)->*fn)(obj, status, events); }
-        template < void (T::*fn)(int status, int events) >
+        template < void (self_t::*fn)(int status, int events) >
         static void on_poll(uv_poll_t* handle, int status, int events) {
             (self(handle)->*fn)(status, events); }
         static void on_poll(uv_poll_t* handle, int status, int events) {
-            on_poll<&T::on_poll>(handle, status, events); }
+            on_poll<&self_t::on_poll>(handle, status, events); }
 
-        template < void (T::*fn)(uvobj_t& obj, int status) >
+        // uv_prepare_cb
+        template < void (self_t::*fn)(uvobj_t& obj, int status) >
         static void on_prepare(uv_prepare_t* handle, int status) {
             uvobj_t obj(from_ref, handle);
             (self(obj)->*fn)(obj, status); }
-        template < void (T::*fn)(int status) >
+        template < void (self_t::*fn)(int status) >
         static void on_prepare(uv_prepare_t* handle, int status) {
             (self(handle)->*fn)(status); }
         static void on_prepare(uv_prepare_t* handle, int status) {
-            on_prepare<&T::on_prepare>(handle, status); }
+            on_prepare<&self_t::on_prepare>(handle, status); }
 
-        template < void (T::*fn)(uvobj_t& obj, int status) >
+        // uv_check_cb
+        template < void (self_t::*fn)(uvobj_t& obj, int status) >
         static void on_check(uv_check_t* handle, int status) {
             uvobj_t obj(from_ref, handle);
             (self(obj)->*fn)(obj, status); }
-        template < void (T::*fn)(int status) >
+        template < void (self_t::*fn)(int status) >
         static void on_check(uv_check_t* handle, int status) {
             (self(handle)->*fn)(status); }
         static void on_check(uv_check_t* handle, int status) {
-            on_check<&T::on_check>(handle, status); }
+            on_check<&self_t::on_check>(handle, status); }
 
-        template < void (T::*fn)(uvobj_t& obj, int status) >
+        // uv_idle_cb
+        template < void (self_t::*fn)(uvobj_t& obj, int status) >
         static void on_idle(uv_idle_t* handle, int status) {
             uvobj_t obj(from_ref, handle);
             (self(obj)->*fn)(obj, status); }
-        template < void (T::*fn)(int status) >
+        template < void (self_t::*fn)(int status) >
         static void on_idle(uv_idle_t* handle, int status) {
             (self(handle)->*fn)(status); }
         static void on_idle(uv_idle_t* handle, int status) {
-            on_idle<&T::on_idle>(handle, status); }
+            on_idle<&self_t::on_idle>(handle, status); }
 
-        template < void (T::*fn)(uvobj_t& obj, int status) >
+        // uv_async_cb
+        template < void (self_t::*fn)(uvobj_t& obj, int status) >
         static void on_async(uv_async_t* handle, int status) {
             uvobj_t obj(from_ref, handle);
             (self(obj)->*fn)(obj, status); }
-        template < void (T::*fn)(int status) >
+        template < void (self_t::*fn)(int status) >
         static void on_async(uv_async_t* handle, int status) {
             (self(handle)->*fn)(status); }
         static void on_async(uv_async_t* handle, int status) {
-            on_async<&T::on_async>(handle, status); }
+            on_async<&self_t::on_async>(handle, status); }
 
-        template < void (T::*fn)(uvobj_t& obj, int status) >
+        // uv_timer_cb
+        template < void (self_t::*fn)(uvobj_t& obj, int status) >
         static void on_timer(uv_timer_t* handle, int status) {
             uvobj_t obj(from_ref, handle);
             (self(obj)->*fn)(obj, status); }
-        template < void (T::*fn)(int status) >
+        template < void (self_t::*fn)(int status) >
         static void on_timer(uv_timer_t* handle, int status) {
             (self(handle)->*fn)(status); }
         static void on_timer(uv_timer_t* handle, int status) {
-            on_timer<&T::on_timer>(handle, status); }
+            on_timer<&self_t::on_timer>(handle, status); }
+
+        // uv_fs_event_cb
+        template < void (self_t::*fn)(uvobj_t& obj, const char* filename, int events, int status) >
+        static void on_fs_event(uv_fs_event_t* handle, const char* filename, int events, int status) {
+            uvobj_t obj(from_ref, handle);
+            (self(obj)->*fn)(obj, filename, events, status); }
+        template < void (self_t::*fn)(const char* filename, int events, int status) >
+        static void on_fs_event(uv_fs_event_t* handle, const char* filename, int events, int status) {
+            (self(handle)->*fn)(filename, events, status); }
+        static void on_fs_event(uv_fs_event_t* handle, const char* filename, int events, int status) {
+            on_timer<&self_t::on_timer>(handle, filename, events, status); }
 
         /* Request Callbacks */
-        template < void (T::*fn)(uvobj_t& obj, uv_udp_send_t* req, int status) >
+
+        // uv_udp_send_cb
+        template < void (self_t::*fn)(uvobj_t& obj, uv_udp_send_t* req, int status) >
         static void on_udp_send(uv_udp_send_t* req, int status) {
             uvobj_t obj(from_ref, req->handle);
             (self(obj)->*fn)(obj, req, status); }
-        template < void (T::*fn)(uv_udp_send_t* req, int status) >
+        template < void (self_t::*fn)(uv_udp_send_t* req, int status) >
         static void on_udp_send(uv_udp_send_t* req, int status) {
             (self(req->handle)->*fn)(req, status); }
         static void on_udp_send(uv_udp_send_t* req, int status) {
-            on_udp_send<&T::on_udp_send>(req, status); }
+            on_udp_send<&self_t::on_udp_send>(req, status); }
 
-        template < void (T::*fn)(uvobj_t& obj, uv_connect_t* req, int status) >
+        // uv_connect_cb
+        template < void (self_t::*fn)(uvobj_t& obj, uv_connect_t* req, int status) >
         static void on_connect(uv_connect_t* req, int status) {
             uvobj_t obj(from_ref, req->handle);
             (self(obj)->*fn)(obj, req, status); }
-        template < void (T::*fn)(uv_connect_t* req, int status) >
+        template < void (self_t::*fn)(uv_connect_t* req, int status) >
         static void on_connect(uv_connect_t* req, int status) {
             (self(req->handle)->*fn)(req, status); }
         static void on_connect(uv_connect_t* req, int status) {
-            on_connect<&T::on_connect>(req, status); }
+            on_connect<&self_t::on_connect>(req, status); }
 
-        template < void (T::*fn)(uvobj_t& obj, uv_write_t* req, int status) >
+        // uv_write_cb
+        template < void (self_t::*fn)(uvobj_t& obj, uv_write_t* req, int status) >
         static void on_write(uv_write_t* req, int status) {
             uvobj_t obj(from_ref, req->handle);
             (self(obj)->*fn)(obj, req, status); }
-        template < void (T::*fn)(uv_write_t* req, int status) >
+        template < void (self_t::*fn)(uv_write_t* req, int status) >
         static void on_write(uv_write_t* req, int status) {
             (self(req->handle)->*fn)(req, status); }
         static void on_write(uv_write_t* req, int status) {
-            on_write<&T::on_write>(req, status); }
+            on_write<&self_t::on_write>(req, status); }
 
-        template < void (T::*fn)(uvobj_t& obj, uv_shutdown_t* req, int status) >
+        // uv_shutdown_cb
+        template < void (self_t::*fn)(uvobj_t& obj, uv_shutdown_t* req, int status) >
         static void on_shutdown(uv_shutdown_t* req, int status) {
             uvobj_t obj(from_ref, req->handle);
             (self(obj)->*fn)(obj, req, status); }
-        template < void (T::*fn)(uv_shutdown_t* req, int status) >
+        template < void (self_t::*fn)(uv_shutdown_t* req, int status) >
         static void on_shutdown(uv_shutdown_t* req, int status) {
             (self(req->handle)->*fn)(req, status); }
         static void on_shutdown(uv_shutdown_t* req, int status) {
-            on_shutdown<&T::on_shutdown>(req, status); }
+            on_shutdown<&self_t::on_shutdown>(req, status); }
 
-        template < void (T::*fn)(uvobj_t& obj, uv_work_t* req) >
+        // uv_work_cb
+        template < void (self_t::*fn)(uvobj_t& obj, uv_work_t* req) >
         static void on_work(uv_work_t* req) {
             uvobj_t obj(from_ref, req);
             (self(obj)->*fn)(obj, req); }
-        template < void (T::*fn)(uv_work_t* req) >
+        template < void (self_t::*fn)(uv_work_t* req) >
         static void on_work(uv_work_t* req) {
             (self(req)->*fn)(req); }
         static void on_work(uv_work_t* req) {
-            on_work<&T::on_work>(req); }
+            on_work<&self_t::on_work>(req); }
 
-        template < void (T::*fn)(uvobj_t& obj, uv_work_t* req) >
+        // uv_after_work_cb
+        template < void (self_t::*fn)(uvobj_t& obj, uv_work_t* req) >
         static void on_after_work(uv_work_t* req) {
             uvobj_t obj(from_ref, req);
             (self(obj)->*fn)(obj, req); }
-        template < void (T::*fn)(uv_work_t* req) >
+        template < void (self_t::*fn)(uv_work_t* req) >
         static void on_after_work(uv_work_t* req) {
             (self(req)->*fn)(req); }
         static void on_after_work(uv_work_t* req) {
-            on_after_work<&T::on_after_work>(req); }
+            on_after_work<&self_t::on_after_work>(req); }
+
+        // uv_fs_cb
+        template < void (self_t::*fn)(uvobj_t& obj, uv_fs_t* req) >
+        static void on_fs(uv_fs_t* req) {
+            uvobj_t obj(from_ref, req);
+            (self(obj)->*fn)(obj, req); }
+        template < void (self_t::*fn)(uv_fs_t* req) >
+        static void on_fs(uv_fs_t* req) {
+            (self(req)->*fn)(req); }
+        static void on_fs(uv_fs_t* req) {
+            on_fs<&self_t::on_fs>(req); }
     };
 }

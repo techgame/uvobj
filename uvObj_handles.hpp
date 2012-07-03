@@ -17,6 +17,9 @@ namespace uvObj {
             return queue(NULL, work_cb, after_cb); }
         int queue(uv_loop_t* loop, uv_work_cb work_cb, uv_after_work_cb after_cb) {
             return uv_queue_work(loop, *this, work_cb, after_cb); }
+        template <typename T>
+        int queue(T* self, uv_loop_t* loop=NULL) {
+            return queue(loop, T::evt::on_work, T::evt::on_after_work); }
     };
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -29,6 +32,13 @@ namespace uvObj {
         int getaddrinfo(uv_loop_t* loop, uv_getaddrinfo_cb getaddrinfo_cb,
                 const char* node, const char* service, const struct addrinfo* hints) {
             return uv_getaddrinfo(loop, *this, getaddrinfo_cb, node, service, hints); }
+
+        template <typename T>
+        int getaddrinfo(T* self, const char* node, const char* service, const struct addrinfo* hints) {
+            return getaddrinfo(NULL, T::evt::on_getaddrinfo, node, service, hints); }
+        template <typename T>
+        int getaddrinfo(T* self, uv_loop_t* loop, const char* node, const char* service, const struct addrinfo* hints) {
+            return getaddrinfo(loop, T::evt::on_getaddrinfo, node, service, hints); }
 
         static void freeaddrinfo(struct addrinfo* ai) { uv_freeaddrinfo(ai); }
     };
@@ -49,7 +59,24 @@ namespace uvObj {
             return uv_poll_init_socket(_as_loop(loop), *this, socket); }
         int start(int events, uv_poll_cb cb) {
             return uv_poll_start(*this, events, cb); }
+        template <typename T>
+        int start(T* self, int events) {
+            return uv_poll_start(*this, events, T::evt::on_poll); }
         int stop() { return uv_poll_stop(*this); }
+    };
+
+    /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+
+    struct Process : Handle_t< uv_process_t > {
+        typedef Handle_t< uv_process_t > Base_t;
+        int spawn(const uv_process_options_t& options) {
+            return spawn(NULL, options); }
+        int spawn(uv_loop_t* loop, const uv_process_options_t& options) {
+            return uv_spawn(_as_loop(loop), *this, options); }
+        int kill(int signum) {
+            return uv_process_kill(*this, signum); }
+        static uv_err_t kill(int pid, int signum) {
+            return uv_kill(pid, signum); }
     };
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -64,6 +91,9 @@ namespace uvObj {
             return uv_prepare_init(_as_loop(loop), *this); }
         int start(uv_prepare_cb cb) {
             return uv_prepare_start(*this, cb); }
+        template <typename T>
+        int start(T* self) {
+            return start(T::evt::on_prepare); }
         int stop() { return uv_prepare_stop(*this); }
     };
 
@@ -79,6 +109,9 @@ namespace uvObj {
             return uv_check_init(_as_loop(loop), *this); }
         int start(uv_check_cb cb) {
             return uv_check_start(*this, cb); }
+        template <typename T>
+        int start(T* self) {
+            return start(T::evt::on_check); }
         int stop() { return uv_check_stop(*this); }
     };
 
@@ -94,6 +127,9 @@ namespace uvObj {
             return uv_idle_init(_as_loop(loop), *this); }
         int start(uv_idle_cb cb) {
             return uv_idle_start(*this, cb); }
+        template <typename T>
+        int start(T* self) {
+            return start(T::evt::on_idle); }
         int stop() { return uv_idle_stop(*this); }
     };
 
@@ -103,10 +139,18 @@ namespace uvObj {
         typedef Handle_t< uv_async_t > Base_t;
         Async(uv_loop_t* loop, uv_async_cb cb) : Base_t() { init(loop, cb); }
         Async(uv_async_cb cb) : Base_t() { init(cb); }
+        template <typename T>
+        Async(T* self, uv_loop_t* loop=NULL) : Base_t() { init(loop, T::evt::on_async); }
 
         int init(uv_async_cb cb) { return init(NULL, cb); }
         int init(uv_loop_t* loop, uv_async_cb cb) {
             return uv_async_init(_as_loop(loop), *this, cb); }
+        template <typename T>
+        int init(T* self) {
+            return init(NULL, T::evt::on_async); }
+        template <typename T>
+        int init(T* self, uv_loop_t* loop) {
+            return init(loop, T::evt::on_async); }
         int send() { return uv_async_send(*this); }
     };
 
@@ -122,6 +166,9 @@ namespace uvObj {
             return uv_timer_init(_as_loop(loop), *this); }
         int start(uv_timer_cb cb, int64_t timeout, int64_t repeat) {
             return uv_timer_start(*this, cb, timeout, repeat); }
+        template <typename T>
+        int start(T* self, int64_t timeout, int64_t repeat) {
+            return start(T::evt::on_timer, timeout, repeat); }
         int stop() { return uv_timer_stop(*this); }
         int again() { return uv_timer_again(*this); }
         int64_t get_repeat() {

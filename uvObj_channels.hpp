@@ -108,6 +108,9 @@ namespace uvObj {
 
         int recv_start(uv_alloc_cb alloc_cb, uv_udp_recv_cb recv_cb) {
             return uv_udp_recv_start(*this, alloc_cb, recv_cb); }
+        template <typename T>
+        int recv_start(T* self) {
+            return recv_start(T::evt::on_alloc, T::evt::on_recv); }
         int recv_stop() { return uv_udp_recv_stop(*this); }
     };
 
@@ -130,6 +133,9 @@ namespace uvObj {
 
         int listen(int backlog, uv_connection_cb cb) {
             return uv_listen(*this, backlog, cb); }
+        template <typename T>
+        int listen(T* self, int backlog) {
+            return listen(backlog, T::evt::on_connection); }
         int accept(uv_stream_t* client) {
             return uv_accept(*this, client); }
 
@@ -137,8 +143,14 @@ namespace uvObj {
             return uv_is_readable(*this); }
         int read_start(uv_alloc_cb alloc_cb, uv_read_cb read_cb) {
             return uv_read_start(*this, alloc_cb, read_cb); }
+        template <typename T>
+        int read_start(T* self) {
+            return uv_read_start(*this, T::evt::on_alloc, T::evt::on_read); }
         int read2_start(uv_alloc_cb alloc_cb, uv_read2_cb read_cb) {
             return uv_read2_start(*this, alloc_cb, read_cb); }
+        template <typename T>
+        int read2_start(T* self) {
+            read2_start(T::evt::on_alloc, T::evt::on_read); }
         int read_stop() {
             return uv_read_stop(*this); }
 
@@ -165,9 +177,7 @@ namespace uvObj {
 
         int init() { return init(NULL); }
         int init(uv_loop_t* loop) {
-            int res = uv_tcp_init(_as_loop(loop), *this);
-            printf("RES: %d loop: %p\n", res, loop);
-            return res; }
+            return uv_tcp_init(_as_loop(loop), *this); }
         int nodelay(bool enable) {
             return uv_tcp_nodelay(*this, enable); }
         int keepalive(bool enable, unsigned int delay) {
@@ -226,20 +236,6 @@ namespace uvObj {
             return uv_tty_get_winsize(*this, &width, &height); }
         static uv_handle_type guess_handle(uv_file file) {
             return uv_guess_handle(file); }
-    };
-
-    /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-
-    struct Process : Handle_t< uv_process_t > {
-        typedef Handle_t< uv_process_t > Base_t;
-        int spawn(const uv_process_options_t& options) {
-            return spawn(NULL, options); }
-        int spawn(uv_loop_t* loop, const uv_process_options_t& options) {
-            return uv_spawn(_as_loop(loop), *this, options); }
-        int kill(int signum) {
-            return uv_process_kill(*this, signum); }
-        static uv_err_t kill(int pid, int signum) {
-            return uv_kill(pid, signum); }
     };
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
