@@ -162,6 +162,20 @@ namespace uvObj {
         void write2(uv_write_t* req, uv_buf_t bufs[], int bufcnt, uv_stream_t* send_handle, uv_write_cb cb) {
             Base_t::uvRes( uv_write2(req, *this, bufs, bufcnt, send_handle, cb) ); }
 
+        void write(uv_buf_t buf) {
+            Write(buf).write(*this); }
+        void write(const char* buf) {
+            Write(buf).write(*this); }
+        void write(const char* buf, unsigned int len) {
+            Write(buf, len).write(*this); }
+
+        void write2(uv_buf_t buf, uv_stream_t* send_handle) {
+            Write(buf).write2(*this, send_handle); }
+        void write2(const char* buf, uv_stream_t* send_handle) {
+            Write(buf).write2(*this, send_handle); }
+        void write2(const char* buf, unsigned int len, uv_stream_t* send_handle) {
+            Write(buf, len).write2(*this, send_handle); }
+
         void shutdown(uv_shutdown_t* req, uv_shutdown_cb cb) {
             Base_t::uvRes( uv_shutdown(req, *this, cb) ); }
 

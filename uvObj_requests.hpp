@@ -92,6 +92,10 @@ namespace uvObj {
         typedef uvObj::req_events_t<UDPSend> evt;
 
         UDPSend() { init(this); }
+        UDPSend(uv_buf_t buf) { init(this); push(buf); }
+        UDPSend(const char* buf) { init(this); push(buf); }
+        UDPSend(const char* buf, unsigned int len) { init(this); push(buf, len); }
+
         template <typename T>
         UDPSend(T* self) { Base_t::setData(self); _ref_->cb = T::on_udp_send; }
         template <typename T>
@@ -127,6 +131,10 @@ namespace uvObj {
         typedef uvObj::req_events_t<Write> evt;
 
         Write() { init(this); }
+        Write(uv_buf_t buf) { init(this); push(buf); }
+        Write(const char* buf) { init(this); push(buf); }
+        Write(const char* buf, unsigned int len) { init(this); push(buf, len); }
+
         template <typename T>
         Write(T* self) { init(self); }
         template <typename T>
