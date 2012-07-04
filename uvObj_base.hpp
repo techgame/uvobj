@@ -58,11 +58,16 @@ namespace uvObj {
             return uvResult(res, loop()); }        
 
         template <typename data_t>
-        inline data_t data() { return reinterpret_cast<data_t>(_ref_->data); }
+        inline data_t data() { return reinterpret_cast<data_t>(_ref_ ? _ref_->data : NULL); }
         template <typename data_t>
-        inline void setData(data_t data) { _ref_->data = data; }
+        inline void setData(data_t data) { if (_ref_) _ref_->data = data; }
         template <typename data_t>
-        inline void delData() { delete data<data_t>(); _ref_->data = NULL; }
+        inline void delData() {
+            if (!_ref_) {
+                delete data<data_t>();
+                _ref_->data = NULL;
+            }
+        }
 
         uv_t* _ref_;
     };
@@ -82,9 +87,9 @@ namespace uvObj {
 
         bool is_active() { return uv_is_active(asHandle()); }
         bool is_closing() { return uv_is_closing(asHandle()); }
-        void close(uv_close_cb cb) { _uv_exc(uv_close(asHandle(), cb)); }
+        void close(uv_close_cb cb) { uv_close(asHandle(), cb); }
         template <typename T>
-        void close(T* self) { close(T::evt::on_close); }
+        void close(T* self) { Base_t::setData(self); close(T::evt::on_close); }
 
         static uv_buf_t buf_create(unsigned int len) {
             return buf_init((char*)::malloc(len), len); }

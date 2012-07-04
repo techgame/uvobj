@@ -8,7 +8,8 @@
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
 #pragma once
-#include "./uvobj_base.hpp"
+#include "./uvObj_base.hpp"
+#include "./uvObj_requests.hpp"
 
 namespace uvObj {
     struct IP {
@@ -111,7 +112,7 @@ namespace uvObj {
             Base_t::uvRes( uv_udp_recv_start(*this, alloc_cb, recv_cb) ); }
         template <typename T>
         void recv_start(T* self) {
-            recv_start(T::evt::on_alloc, T::evt::on_recv); }
+            Base_t::setData(self); recv_start(T::evt::on_alloc, T::evt::on_recv); }
         void recv_stop() {
             Base_t::uvRes( uv_udp_recv_stop(*this) ); }
     };
@@ -137,7 +138,7 @@ namespace uvObj {
             Base_t::uvRes( uv_listen(*this, backlog, cb) ); }
         template <typename T>
         void listen(T* self, int backlog) {
-            listen(backlog, T::evt::on_connection); }
+            Base_t::setData(self); listen(backlog, T::evt::on_connection); }
         void accept(uv_stream_t* client) {
             Base_t::uvRes( uv_accept(*this, client) ); }
 
@@ -146,12 +147,12 @@ namespace uvObj {
             Base_t::uvRes( uv_read_start(*this, alloc_cb, read_cb) ); }
         template <typename T>
         void read_start(T* self) {
-            read_start(T::evt::on_alloc, T::evt::on_read); }
+            Base_t::setData(self); read_start(T::evt::on_alloc, T::evt::on_read); }
         void read2_start(uv_alloc_cb alloc_cb, uv_read2_cb read_cb) {
             Base_t::uvRes( uv_read2_start(*this, alloc_cb, read_cb) ); }
         template <typename T>
         int read2_start(T* self) {
-            read2_start(T::evt::on_alloc, T::evt::on_read); }
+            Base_t::setData(self); read2_start(T::evt::on_alloc, T::evt::on_read2); }
         void read_stop() {
             Base_t::uvRes( uv_read_stop(*this) ); }
 
@@ -163,6 +164,13 @@ namespace uvObj {
 
         void shutdown(uv_shutdown_t* req, uv_shutdown_cb cb) {
             Base_t::uvRes( uv_shutdown(req, *this, cb) ); }
+
+        template <typename T>
+        void shutdown(T* self) {
+            Shutdown(self).perform(*this); }
+        template <typename T>
+        void shutdown(T* self, uv_shutdown_cb cb) {
+            Shutdown(self, cb).perform(*this); }
     };
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -208,7 +216,7 @@ namespace uvObj {
             Base_t::uvRes( uv_tcp_getpeername(*this, name, namelen) ); }
         void connect(uv_connect_t* req, const char* ip, int port, uv_connect_cb cb) {
             Base_t::uvRes( uv_tcp_connect(req, *this, IP::addr(ip, port), cb) ); }
-        void connect6(uv_connect_t* req,const char* ip, int port, uv_connect_cb cb) {
+        void connect6(uv_connect_t* req, const char* ip, int port, uv_connect_cb cb) {
             Base_t::uvRes( uv_tcp_connect6(req, *this, IP::addr6(ip, port), cb) ); }
         void connect(uv_connect_t* req, const struct sockaddr_in& addr, uv_connect_cb cb) {
             Base_t::uvRes( uv_tcp_connect(req, *this, addr, cb) ); }

@@ -82,7 +82,7 @@ namespace uvObj {
             uvRes( uv_spawn(_as_loop(loop), *this, opt) ); }
         template <typename T>
         void spawn(T* self, uv_loop_t* loop=NULL) {
-            spawn(loop, T::evt::on_exit); }
+            Base_t::setData(self); spawn(loop, T::evt::on_exit); }
 
         uv_process_options_t opt;
         std::vector<const char*> v_args;
