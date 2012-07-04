@@ -170,7 +170,7 @@ namespace uvObj {
         void queue(uv_work_cb work_cb, uv_after_work_cb after_cb) {
             queue(NULL, work_cb, after_cb); }
         void queue(uv_loop_t* loop, uv_work_cb work_cb, uv_after_work_cb after_cb) {
-            Base_t::uvRes( uv_queue_work(loop, *this, work_cb, after_cb) ); }
+            Base_t::uvRes( uv_queue_work(_as_loop(loop), *this, work_cb, after_cb) ); }
         template <typename T>
         void queue(T* self, uv_loop_t* loop=NULL) {
             Base_t::setData(self); queue(loop, T::evt::on_work, T::evt::on_after_work); }

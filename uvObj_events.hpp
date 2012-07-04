@@ -58,7 +58,10 @@ namespace uvObj {
         // uv_work_cb
         template < void (self_t::*fn)(uv_work_t* req) >
         static void on_work(uv_work_t* req) {
-            (self(req)->*fn)(req); delete req; }
+            (self(req)->*fn)(req); }
+        template < void (self_t::*fn)() >
+        static void on_work(uv_work_t* req) {
+            (self(req)->*fn)(); }
         static void on_work(uv_work_t* req) {
             on_work<&self_t::on_work>(req); }
 
@@ -66,6 +69,9 @@ namespace uvObj {
         template < void (self_t::*fn)(uv_work_t* req) >
         static void on_after_work(uv_work_t* req) {
             (self(req)->*fn)(req); delete req; }
+        template < void (self_t::*fn)() >
+        static void on_after_work(uv_work_t* req) {
+            (self(req)->*fn)(); delete req; }
         static void on_after_work(uv_work_t* req) {
             on_after_work<&self_t::on_after_work>(req); }
 
