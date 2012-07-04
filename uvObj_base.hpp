@@ -59,7 +59,7 @@ namespace uvObj {
         inline bool uvRes(int res) const { return uvResult(res, loop()); }
         inline bool uvRes(int res, int ignore) const {
             if (res == ignore) return false;
-            return uvResult(res, loop()); }        
+            return uvResult(res, loop()); }
 
         template <typename data_t>
         inline data_t data() { return reinterpret_cast<data_t>(_ref_ ? _ref_->data : NULL); }

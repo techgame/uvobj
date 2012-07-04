@@ -37,7 +37,7 @@ namespace uvObj {
         void init(T* self, const char* filename, int flags) {
             Base_t::setData(self); init(NULL, filename, T::evt::on_fs_event, flags); }
         void init(uv_loop_t* loop, const char* filename, uv_fs_event_cb cb, int flags) {
-            Base_t::uvRes( uv_fs_event_init(_as_loop(loop), *this, filename, cb, flags) ); } 
+            Base_t::uvRes( uv_fs_event_init(_as_loop(loop), *this, filename, cb, flags) ); }
         template <typename T>
         void init(T* self, uv_loop_t* loop, const char* filename, int flags) {
             Base_t::setData(self); init(loop, filename, T::evt::on_fs_event, flags); }

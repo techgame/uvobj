@@ -33,7 +33,7 @@ namespace uvObj {
         { init(); target(file, cwd); }
 
         void init() { ::memset(&opt, 0, sizeof(opt)); env(); }
-        
+
         ProcessEx& target(const char* file, const char* cwd=NULL) {
             if (v_args.size()<1) v_args.push_back(file);
             v_args[0] = opt.file = file;
