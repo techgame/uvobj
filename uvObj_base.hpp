@@ -105,38 +105,31 @@ namespace uvObj {
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
     struct Mutex : Ref_t< uv_mutex_t > {
-        inline void uvRes(int res) const {
-            if (res!=0) throw uvObj::error(uv_default_loop(), res); }
-
-        void init() { uvRes( uv_mutex_init(*this) ); }
+        void init() { uvResult( uv_mutex_init(*this) ); }
         void destroy() { uv_mutex_destroy(*this); }
         void lock() { uv_mutex_lock(*this); }
-        void trylock() { uvRes( uv_mutex_trylock(*this) ); }
+        void trylock() { uvResult( uv_mutex_trylock(*this) ); }
         void unlock() { uv_mutex_unlock(*this); }
     };
 
     struct RWLock : Ref_t< uv_rwlock_t > {
-        inline void uvRes(int res) const {
-            if (res!=0) throw uvObj::error(uv_default_loop(), res); }
-        
-        void init() { uvRes( uv_rwlock_init(*this) ); }
+        void init() { uvResult( uv_rwlock_init(*this) ); }
         void destroy() { uv_rwlock_destroy(*this); }
 
         void rdlock() { uv_rwlock_rdlock(*this); }
-        void tryrdlock() { uvRes( uv_rwlock_tryrdlock(*this) ); }
+        void tryrdlock() { uvResult( uv_rwlock_tryrdlock(*this) ); }
         void rdunlock() { uv_rwlock_rdunlock(*this); }
 
         void wrlock() { uv_rwlock_wrlock(*this); }
-        void trywrlock() { uvRes( uv_rwlock_trywrlock(*this) ); }
+        void trywrlock() { uvResult( uv_rwlock_trywrlock(*this) ); }
         void wrunlock() { uv_rwlock_wrunlock(*this); }
     };
 
     struct Semaphore : Ref_t< uv_sem_t > {
-        void init(unsigned int value) {
-            uvRes( uv_sem_init(*this, value) ); }
+        void init(unsigned int value) { uvResult( uv_sem_init(*this, value) ); }
         void destroy() { uv_sem_destroy(*this); }
         void post() { uv_sem_post(*this); }
         void wait() { uv_sem_wait(*this); }
-        void trywait() { uvRes( uv_sem_trywait(*this) ); }
+        void trywait() { uvResult( uv_sem_trywait(*this) ); }
     };
 }
