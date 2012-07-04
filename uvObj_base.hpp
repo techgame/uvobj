@@ -124,10 +124,19 @@ namespace uvObj {
 
         void rdlock() { uv_rwlock_rdlock(*this); }
         void tryrdlock() { uvRes( uv_rwlock_tryrdlock(*this) ); }
-        void rdunlock() { return uv_rwlock_rdunlock(*this); }
+        void rdunlock() { uv_rwlock_rdunlock(*this); }
 
         void wrlock() { uv_rwlock_wrlock(*this); }
         void trywrlock() { uvRes( uv_rwlock_trywrlock(*this) ); }
         void wrunlock() { uv_rwlock_wrunlock(*this); }
+    };
+
+    struct Semaphore : Ref_t< uv_sem_t > {
+        void init(unsigned int value) {
+            uvRes( uv_sem_init(*this, value) ); }
+        void destroy() { uv_sem_destroy(*this); }
+        void post() { uv_sem_post(*this); }
+        void wait() { uv_sem_wait(*this); }
+        void trywait() { uvRes( uv_sem_trywait(*this) ); }
     };
 }
