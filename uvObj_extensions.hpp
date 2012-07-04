@@ -11,7 +11,6 @@
 #include "./uvObj_channels.hpp"
 
 #if defined(WIN32)
-#define snprintf _snprintf
 #define _env_default NULL
 inline int setenv(const char *name, const char *value, int overwrite) {
     if (!overwrite && getenv(name)) return 0;

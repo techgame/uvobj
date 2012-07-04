@@ -120,11 +120,14 @@ namespace uvObj {
             return on_alloc<&self_t::on_alloc>(handle, suggested_size); }
 
         // uv_udp_recv_cb
-        template < void (self_t::*fn)(uvobj_t& obj, ssize_t nread, uv_buf_t buf, struct sockaddr* addr, unsigned flags) >
+        typedef void (self_t::*udp_recv_obj_mfn)(uvobj_t& obj, ssize_t nread, uv_buf_t buf, struct sockaddr* addr, unsigned flags);
+        template < udp_recv_obj_mfn fn >
         static void on_udp_recv(uv_udp_t* handle, ssize_t nread, uv_buf_t buf, struct sockaddr* addr, unsigned flags) {
             uvobj_t obj(from_ref, handle);
             (self(obj)->*fn)(obj, nread, buf, addr, flags); }
-        template < void (self_t::*fn)(ssize_t nread, uv_buf_t buf, struct sockaddr* addr, unsigned flags) >
+
+        typedef void (self_t::*udp_recv_mfn)(ssize_t nread, uv_buf_t buf, struct sockaddr* addr, unsigned flags);
+        template < udp_recv_mfn fn >
         static void on_udp_recv(uv_udp_t* handle, ssize_t nread, uv_buf_t buf, struct sockaddr* addr, unsigned flags) {
             (self(handle)->*fn)(nread, buf, addr, flags); }
         static void on_udp_recv(uv_udp_t* handle, ssize_t nread, uv_buf_t buf, struct sockaddr* addr, unsigned flags) {
@@ -142,22 +145,26 @@ namespace uvObj {
             on_connection<&self_t::on_connection>(server, status); }
 
         // uv_read_cb
-        template < void (self_t::*fn)(uvobj_t& obj, ssize_t nread, uv_buf_t buf) >
+        typedef void (self_t::*on_read_obj_mfn)(uvobj_t& obj, ssize_t nread, uv_buf_t buf);
+        template < on_read_obj_mfn fn >
         static void on_read(uv_stream_t* stream, ssize_t nread, uv_buf_t buf) {
             uvobj_t obj(from_ref, stream);
             (self(obj)->*fn)(obj, nread, buf); }
-        template < void (self_t::*fn)(ssize_t nread, uv_buf_t buf) >
+        typedef void (self_t::*on_read_mfn)(ssize_t nread, uv_buf_t buf);
+        template < on_read_mfn fn >
         static void on_read(uv_stream_t* stream, ssize_t nread, uv_buf_t buf) {
             (self(stream)->*fn)(nread, buf); }
         static void on_read(uv_stream_t* stream, ssize_t nread, uv_buf_t buf) {
             on_read<&self_t::on_read>(stream, nread,  buf); }
 
         // uv_read2_cb
-        template < void (self_t::*fn)(uvobj_t& obj, ssize_t nread, uv_buf_t buf, uv_handle_type pending) >
+        typedef void (self_t::*on_read2_obj_mfn)(uvobj_t& obj, ssize_t nread, uv_buf_t buf, uv_handle_type pending);
+        template < on_read2_obj_mfn fn >
         static void on_read2(uv_pipe_t* pipe, ssize_t nread, uv_buf_t buf, uv_handle_type pending) {
             uvobj_t obj(from_ref, pipe);
             (self(obj)->*fn)(obj, nread, buf, pending); }
-        template < void (self_t::*fn)(ssize_t nread, uv_buf_t buf, uv_handle_type pending) >
+        typedef void (self_t::*on_read2_mfn)(ssize_t nread, uv_buf_t buf, uv_handle_type pending);
+        template < on_read2_mfn fn >
         static void on_read2(uv_pipe_t* pipe, ssize_t nread, uv_buf_t buf, uv_handle_type pending) {
             (self(pipe)->*fn)(nread, buf, pending); }
         static void on_read2(uv_pipe_t* pipe, ssize_t nread, uv_buf_t buf, uv_handle_type pending) {
