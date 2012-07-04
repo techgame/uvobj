@@ -33,8 +33,8 @@ namespace uvObj {
         const char* err_name(uv_err_t err) { return uv_err_name(err); }
 
 
-        int run() { return uv_run(_loop); }
-        int run_once() { return uv_run_once(_loop); }
+        void run() { uvResult( uv_run(_loop), _loop); }
+        void run_once() { uvResult( uv_run_once(_loop), _loop); }
 
         void update_time() { uv_update_time(_loop); }
         int64_t now() { return uv_now(_loop); }

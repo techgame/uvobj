@@ -71,19 +71,18 @@ namespace uvObj {
         ProcessEx& stdio_all() { return stdio(UV_INHERIT_FD, 0)
             .stdio(UV_INHERIT_FD, 1).stdio(UV_INHERIT_FD, 2); }
 
-        int spawn(uv_exit_cb cb=NULL) { return spawn(NULL, cb); }
-        int spawn(uv_loop_t* loop, uv_exit_cb cb=NULL) {
+        void spawn(uv_exit_cb cb=NULL) { spawn(NULL, cb); }
+        void spawn(uv_loop_t* loop, uv_exit_cb cb=NULL) {
             if (cb) opt.exit_cb = cb;
             if (v_args.back() != NULL)
                 v_args.push_back(NULL);
             opt.args = const_cast<char**>(v_args.size() ? &v_args[0] : NULL);
             opt.stdio_count = v_stdio.size();
             opt.stdio = v_stdio.size() ? &v_stdio[0] : NULL;
-            return uv_spawn(_as_loop(loop), *this, opt); }
-
+            uvRes( uv_spawn(_as_loop(loop), *this, opt) ); }
         template <typename T>
-        int spawn(T* self, uv_loop_t* loop=NULL) {
-            return spawn(loop, T::evt::on_exit); }
+        void spawn(T* self, uv_loop_t* loop=NULL) {
+            spawn(loop, T::evt::on_exit); }
 
         uv_process_options_t opt;
         std::vector<const char*> v_args;

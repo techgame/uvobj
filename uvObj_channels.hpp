@@ -61,57 +61,59 @@ namespace uvObj {
         UDP(uv_loop_t* loop) : Base_t() { init(loop); }
         UDP() : Base_t() { init(); }
 
-        int init() { return init(NULL); }
-        int init(uv_loop_t* loop) {
-            return uv_udp_init(_as_loop(loop), *this); }
+        void init() { init(NULL); }
+        void init(uv_loop_t* loop) {
+            Base_t::uvRes( uv_udp_init(_as_loop(loop), *this) ); }
 
-        int bind(const char* ip, int port, unsigned flags) {
-            return uv_udp_bind(*this, IP::addr(ip, port), flags); }
-        int bind6(const char* ip, int port, unsigned flags) {
-            return uv_udp_bind6(*this, IP::addr6(ip, port), flags); }
-        int bind(const struct sockaddr_in& addr, unsigned flags) {
-            return uv_udp_bind(*this, addr, flags); }
-        int bind6(const struct sockaddr_in6& addr, unsigned flags) {
-            return uv_udp_bind6(*this, addr, flags); }
+        void bind(const char* ip, int port, unsigned flags) {
+            Base_t::uvRes( uv_udp_bind(*this, IP::addr(ip, port), flags) ); }
+        void bind6(const char* ip, int port, unsigned flags) {
+            Base_t::uvRes( uv_udp_bind6(*this, IP::addr6(ip, port), flags) ); }
+        void bind(const struct sockaddr_in& addr, unsigned flags) {
+            Base_t::uvRes( uv_udp_bind(*this, addr, flags) ); }
+        void bind6(const struct sockaddr_in6& addr, unsigned flags) {
+            Base_t::uvRes( uv_udp_bind6(*this, addr, flags) ); }
         std::string getsockurl(const char* schema="udp", const char* path="") {
             return getsockname().url(schema, path); }
         IP getsockname() { IP addr; int len=sizeof(addr.raw);
             uv_udp_getsockname(*this, &addr.raw, &len);
             return addr; }
-        int getsockname(struct sockaddr* name, int* namelen) {
-            return uv_udp_getsockname(*this, name, namelen); }
+        void getsockname(struct sockaddr* name, int* namelen) {
+            Base_t::uvRes( uv_udp_getsockname(*this, name, namelen) ); }
 
-        int set_membership(const char* multicast_addr,
+        void set_membership(const char* multicast_addr,
                 const char* interface_addr, uv_membership membership) {
-            return uv_udp_set_membership(*this, multicast_addr,
-                    interface_addr, membership); }
-        int set_multicast_loop(int on) {
-            return uv_udp_set_multicast_loop(*this, on); }
-        int set_multicast_ttl(int ttl) {
-            return uv_udp_set_multicast_ttl(*this, ttl); }
-        int set_broadcast(int on) {
-            return uv_udp_set_broadcast(*this, on); }
-        int set_ttl(int ttl) { return uv_udp_set_ttl(*this, ttl); }
+            Base_t::uvRes( uv_udp_set_membership(*this, multicast_addr,
+                        interface_addr, membership) ); }
+        void set_multicast_loop(int on) {
+            Base_t::uvRes( uv_udp_set_multicast_loop(*this, on) ); }
+        void set_multicast_ttl(int ttl) {
+            Base_t::uvRes( uv_udp_set_multicast_ttl(*this, ttl) ); }
+        void set_broadcast(int on) {
+            Base_t::uvRes( uv_udp_set_broadcast(*this, on) ); }
+        void set_ttl(int ttl) {
+            Base_t::uvRes( uv_udp_set_ttl(*this, ttl) ); }
 
-        int send(uv_udp_send_t* req, uv_buf_t bufs[], int bufcnt, 
+        void send(uv_udp_send_t* req, uv_buf_t bufs[], int bufcnt, 
                 const char* ip, int port, uv_udp_send_cb cb) {
-            return uv_udp_send(req, *this, bufs, bufcnt, IP::addr(ip, port), cb); }
-        int send6(uv_udp_send_t* req, uv_buf_t bufs[], int bufcnt,
+            Base_t::uvRes( uv_udp_send(req, *this, bufs, bufcnt, IP::addr(ip, port), cb) ); }
+        void send6(uv_udp_send_t* req, uv_buf_t bufs[], int bufcnt,
                 const char* ip, int port, uv_udp_send_cb cb) {
-            return uv_udp_send6(req, *this, bufs, bufcnt, IP::addr6(ip, port), cb); }
-        int send(uv_udp_send_t* req, uv_buf_t bufs[], int bufcnt, 
+            Base_t::uvRes( uv_udp_send6(req, *this, bufs, bufcnt, IP::addr6(ip, port), cb) ); }
+        void send(uv_udp_send_t* req, uv_buf_t bufs[], int bufcnt, 
                 const struct sockaddr_in& addr, uv_udp_send_cb cb) {
-            return uv_udp_send(req, *this, bufs, bufcnt, addr, cb); }
-        int send6(uv_udp_send_t* req, uv_buf_t bufs[], int bufcnt,
+            Base_t::uvRes( uv_udp_send(req, *this, bufs, bufcnt, addr, cb) ); }
+        void send6(uv_udp_send_t* req, uv_buf_t bufs[], int bufcnt,
                 const struct sockaddr_in6& addr, uv_udp_send_cb cb) {
-            return uv_udp_send6(req, *this, bufs, bufcnt, addr, cb); }
+            Base_t::uvRes( uv_udp_send6(req, *this, bufs, bufcnt, addr, cb) ); }
 
-        int recv_start(uv_alloc_cb alloc_cb, uv_udp_recv_cb recv_cb) {
-            return uv_udp_recv_start(*this, alloc_cb, recv_cb); }
+        void recv_start(uv_alloc_cb alloc_cb, uv_udp_recv_cb recv_cb) {
+            Base_t::uvRes( uv_udp_recv_start(*this, alloc_cb, recv_cb) ); }
         template <typename T>
-        int recv_start(T* self) {
-            return recv_start(T::evt::on_alloc, T::evt::on_recv); }
-        int recv_stop() { return uv_udp_recv_stop(*this); }
+        void recv_start(T* self) {
+            recv_start(T::evt::on_alloc, T::evt::on_recv); }
+        void recv_stop() {
+            Base_t::uvRes( uv_udp_recv_stop(*this) ); }
     };
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -131,38 +133,36 @@ namespace uvObj {
             return reinterpret_cast<uv_stream_t*>(Base_t::_ref_); }
         inline operator uv_stream_t*() { return asStream(); }
 
-        int listen(int backlog, uv_connection_cb cb) {
-            return uv_listen(*this, backlog, cb); }
+        void listen(int backlog, uv_connection_cb cb) {
+            Base_t::uvRes( uv_listen(*this, backlog, cb) ); }
         template <typename T>
-        int listen(T* self, int backlog) {
-            return listen(backlog, T::evt::on_connection); }
-        int accept(uv_stream_t* client) {
-            return uv_accept(*this, client); }
+        void listen(T* self, int backlog) {
+            listen(backlog, T::evt::on_connection); }
+        void accept(uv_stream_t* client) {
+            Base_t::uvRes( uv_accept(*this, client) ); }
 
-        int is_readable() {
-            return uv_is_readable(*this); }
-        int read_start(uv_alloc_cb alloc_cb, uv_read_cb read_cb) {
-            return uv_read_start(*this, alloc_cb, read_cb); }
+        bool is_readable() { return uv_is_readable(*this) != 0; }
+        void read_start(uv_alloc_cb alloc_cb, uv_read_cb read_cb) {
+            Base_t::uvRes( uv_read_start(*this, alloc_cb, read_cb) ); }
         template <typename T>
-        int read_start(T* self) {
-            return uv_read_start(*this, T::evt::on_alloc, T::evt::on_read); }
-        int read2_start(uv_alloc_cb alloc_cb, uv_read2_cb read_cb) {
-            return uv_read2_start(*this, alloc_cb, read_cb); }
+        void read_start(T* self) {
+            read_start(T::evt::on_alloc, T::evt::on_read); }
+        void read2_start(uv_alloc_cb alloc_cb, uv_read2_cb read_cb) {
+            Base_t::uvRes( uv_read2_start(*this, alloc_cb, read_cb) ); }
         template <typename T>
         int read2_start(T* self) {
             read2_start(T::evt::on_alloc, T::evt::on_read); }
-        int read_stop() {
-            return uv_read_stop(*this); }
+        void read_stop() {
+            Base_t::uvRes( uv_read_stop(*this) ); }
 
-        int is_writable() {
-            return uv_is_writable(*this); }
-        int write(uv_write_t* req, uv_buf_t bufs[], int bufcnt, uv_write_cb cb) {
-            return uv_write(req, *this, bufs, bufcnt, cb); }
-        int write2(uv_write_t* req, uv_buf_t bufs[], int bufcnt, uv_stream_t* send_handle, uv_write_cb cb) {
-            return uv_write2(req, *this, bufs, bufcnt, send_handle, cb); }
+        bool is_writable() { return uv_is_writable(*this) != 0; }
+        void write(uv_write_t* req, uv_buf_t bufs[], int bufcnt, uv_write_cb cb) {
+            Base_t::uvRes( uv_write(req, *this, bufs, bufcnt, cb) ); }
+        void write2(uv_write_t* req, uv_buf_t bufs[], int bufcnt, uv_stream_t* send_handle, uv_write_cb cb) {
+            Base_t::uvRes( uv_write2(req, *this, bufs, bufcnt, send_handle, cb) ); }
 
-        int shutdown(uv_shutdown_t* req, uv_shutdown_cb cb) {
-            return uv_shutdown(req, *this, cb); }
+        void shutdown(uv_shutdown_t* req, uv_shutdown_cb cb) {
+            Base_t::uvRes( uv_shutdown(req, *this, cb) ); }
     };
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -175,23 +175,23 @@ namespace uvObj {
         TCP(uv_loop_t* loop) : Base_t() { init(loop); }
         TCP() : Base_t() { init(); }
 
-        int init() { return init(NULL); }
-        int init(uv_loop_t* loop) {
-            return uv_tcp_init(_as_loop(loop), *this); }
-        int nodelay(bool enable) {
-            return uv_tcp_nodelay(*this, enable); }
-        int keepalive(bool enable, unsigned int delay) {
-            return uv_tcp_keepalive(*this, enable, delay); }
-        int simultaneous_accepts(bool enable) {
-            return uv_tcp_simultaneous_accepts(*this, enable); }
-        int bind(const char* ip, int port) {
-            return uv_tcp_bind(*this, IP::addr(ip, port)); }
-        int bind6(const char* ip, int port) {
-            return uv_tcp_bind6(*this, IP::addr6(ip, port)); }
-        int bind(const struct sockaddr_in& addr) {
-            return uv_tcp_bind(*this, addr); }
-        int bind6(const struct sockaddr_in6& addr) {
-            return uv_tcp_bind6(*this, addr); }
+        void init() { init(NULL); }
+        void init(uv_loop_t* loop) {
+            Base_t::uvRes( uv_tcp_init(_as_loop(loop), *this) ); }
+        void nodelay(bool enable) {
+            Base_t::uvRes( uv_tcp_nodelay(*this, enable) ); }
+        void keepalive(bool enable, unsigned int delay) {
+            Base_t::uvRes( uv_tcp_keepalive(*this, enable, delay) ); }
+        void simultaneous_accepts(bool enable) {
+            Base_t::uvRes( uv_tcp_simultaneous_accepts(*this, enable) ); }
+        void bind(const char* ip, int port) {
+            Base_t::uvRes( uv_tcp_bind(*this, IP::addr(ip, port)) ); }
+        void bind6(const char* ip, int port) {
+            Base_t::uvRes( uv_tcp_bind6(*this, IP::addr6(ip, port)) ); }
+        void bind(const struct sockaddr_in& addr) {
+            Base_t::uvRes( uv_tcp_bind(*this, addr) ); }
+        void bind6(const struct sockaddr_in6& addr) {
+            Base_t::uvRes( uv_tcp_bind6(*this, addr) ); }
         std::string getsockurl(const char* schema="tcp", const char* path="") {
             return getsockname().url(schema, path); }
         std::string getpeerurl(const char* schema="tcp", const char* path="") {
@@ -202,18 +202,18 @@ namespace uvObj {
         IP getpeername() { IP addr; int len=sizeof(addr.raw);
             uv_tcp_getpeername(*this, &addr.raw, &len);
             return addr; }
-        int getsockname(struct sockaddr* name, int* namelen) {
-            return uv_tcp_getsockname(*this, name, namelen); }
-        int getpeername(struct sockaddr* name, int* namelen) {
-            return uv_tcp_getpeername(*this, name, namelen); }
-        int connect(uv_connect_t* req, const char* ip, int port, uv_connect_cb cb) {
-            return uv_tcp_connect(req, *this, IP::addr(ip, port), cb); }
-        int connect6(uv_connect_t* req,const char* ip, int port, uv_connect_cb cb) {
-            return uv_tcp_connect6(req, *this, IP::addr6(ip, port), cb); }
-        int connect(uv_connect_t* req, const struct sockaddr_in& addr, uv_connect_cb cb) {
-            return uv_tcp_connect(req, *this, addr, cb); }
-        int connect6(uv_connect_t* req, const struct sockaddr_in6& addr, uv_connect_cb cb) {
-            return uv_tcp_connect6(req, *this, addr, cb); }
+        void getsockname(struct sockaddr* name, int* namelen) {
+            Base_t::uvRes( uv_tcp_getsockname(*this, name, namelen) ); }
+        void getpeername(struct sockaddr* name, int* namelen) {
+            Base_t::uvRes( uv_tcp_getpeername(*this, name, namelen) ); }
+        void connect(uv_connect_t* req, const char* ip, int port, uv_connect_cb cb) {
+            Base_t::uvRes( uv_tcp_connect(req, *this, IP::addr(ip, port), cb) ); }
+        void connect6(uv_connect_t* req,const char* ip, int port, uv_connect_cb cb) {
+            Base_t::uvRes( uv_tcp_connect6(req, *this, IP::addr6(ip, port), cb) ); }
+        void connect(uv_connect_t* req, const struct sockaddr_in& addr, uv_connect_cb cb) {
+            Base_t::uvRes( uv_tcp_connect(req, *this, addr, cb) ); }
+        void connect6(uv_connect_t* req, const struct sockaddr_in6& addr, uv_connect_cb cb) {
+            Base_t::uvRes( uv_tcp_connect6(req, *this, addr, cb) ); }
     };
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -226,16 +226,17 @@ namespace uvObj {
         TTY(uv_file fd, int readable) : Base_t()
         { init(fd, readable); }
 
-        int init(uv_file fd, int readable) {
+        void init(uv_file fd, int readable) {
             return init(NULL, fd, readable); }
-        int init(uv_loop_t* loop, uv_file fd, int readable) {
-            return uv_tty_init(_as_loop(loop), *this, fd, readable); }
-        int set_mode(int mode) { return uv_tty_set_mode(*this, mode); }
+        void init(uv_loop_t* loop, uv_file fd, int readable) {
+            Base_t::uvRes( uv_tty_init(_as_loop(loop), *this, fd, readable) ); }
+        void set_mode(int mode) {
+            Base_t::uvRes( uv_tty_set_mode(*this, mode) ); }
         void reset_mode() { uv_tty_reset_mode(); }
-        int get_winsize(int& width, int& height) {
-            return uv_tty_get_winsize(*this, &width, &height); }
+        void get_winsize(int& width, int& height) {
+            Base_t::uvRes( uv_tty_get_winsize(*this, &width, &height) ); }
         static uv_handle_type guess_handle(uv_file file) {
-            return uv_guess_handle(file); }
+           return uv_guess_handle(file); }
     };
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -246,13 +247,13 @@ namespace uvObj {
         Pipe(uv_loop_t* loop, int ipc=0) : Base_t() { init(loop, ipc); }
         Pipe(int ipc=0) : Base_t() { init(ipc); }
 
-        int init(int ipc=0) { return init(NULL, ipc); }
-        int init(uv_loop_t* loop, int ipc=0) {
-            return uv_pipe_init(_as_loop(loop), *this, ipc); }
+        void init(int ipc=0) { init(NULL, ipc); }
+        void init(uv_loop_t* loop, int ipc=0) {
+            Base_t::uvRes( uv_pipe_init(_as_loop(loop), *this, ipc) ); }
         void open(uv_file file) {
             uv_pipe_open(*this, file); }
-        int bind(uv_pipe_t* handle, const char* name) {
-            return uv_pipe_bind(*this, name); }
+        void bind(uv_pipe_t* handle, const char* name) {
+            Base_t::uvRes( uv_pipe_bind(*this, name) ); }
         void connect(uv_connect_t* req, const char* name, uv_connect_cb cb) {
             uv_pipe_connect(req, *this, name, cb); }
         void pending_instances(int count) {
