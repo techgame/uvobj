@@ -40,6 +40,9 @@ namespace uvObj {
     inline bool uvResult(int res, uv_loop_t* loop=NULL) {
         if (res == UV_OK) return true;
         else throw error(loop, res); }
+    template <typename T>
+    inline bool uvResult(int res, T* handle) {
+        return uvResult(res, handle->loop); }
     inline bool uvResult(uv_err_t err, uv_loop_t* loop=NULL) {
         if (err.code == UV_OK) return true;
         else throw error(loop, err); }

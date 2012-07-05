@@ -26,11 +26,19 @@ namespace uvObj {
             (self(req)->*fn)(req);
             uv_fs_req_cleanup(req);
             delete req; }
-
+        template < void (self_t::*fn)() >
+        static void on_fs(uv_fs_t* req) {
+            (self(req)->*fn)();
+            uv_fs_req_cleanup(req);
+            delete req; }
+        
         // uv_connect_cb
         template < void (self_t::*fn)(uv_connect_t* req, int status) >
         static void on_connect(uv_connect_t* req, int status) {
             (self(req)->*fn)(req, status); delete req; }
+        template < void (self_t::*fn)(int status) >
+        static void on_connect(uv_connect_t* req, int status) {
+            (self(req)->*fn)(status); delete req; }
         static void on_connect(uv_connect_t* req, int status) {
             on_connect<&self_t::on_connect>(req, status); }
 
@@ -38,6 +46,9 @@ namespace uvObj {
         template < void (self_t::*fn)(uv_shutdown_t* req, int status) >
         static void on_shutdown(uv_shutdown_t* req, int status) {
             (self(req)->*fn)(req, status); delete req; }
+        template < void (self_t::*fn)(int status) >
+        static void on_shutdown(uv_shutdown_t* req, int status) {
+            (self(req)->*fn)(status); delete req; }
         static void on_shutdown(uv_shutdown_t* req, int status) {
             on_shutdown<&self_t::on_shutdown>(req, status); }
 
@@ -45,6 +56,9 @@ namespace uvObj {
         template < void (self_t::*fn)(uv_udp_send_t* req, int status) >
         static void on_udp_send(uv_udp_send_t* req, int status) {
             (self(req)->*fn)(req, status); delete req; }
+        template < void (self_t::*fn)(int status) >
+        static void on_udp_send(uv_udp_send_t* req, int status) {
+            (self(req)->*fn)(status); delete req; }
         static void on_udp_send(uv_udp_send_t* req, int status) {
             on_udp_send<&self_t::on_udp_send>(req, status); }
 
@@ -52,6 +66,9 @@ namespace uvObj {
         template < void (self_t::*fn)(uv_write_t* req, int status) >
         static void on_write(uv_write_t* req, int status) {
             (self(req)->*fn)(req, status); delete req; }
+        template < void (self_t::*fn)(int status) >
+        static void on_write(uv_write_t* req, int status) {
+            (self(req)->*fn)(status); delete req; }
         static void on_write(uv_write_t* req, int status) {
             on_write<&self_t::on_write>(req, status); }
 
@@ -76,9 +93,12 @@ namespace uvObj {
             on_after_work<&self_t::on_after_work>(req); }
 
         // uv_getaddrinfo_cb
-        template < void (self_t::*fn)(int status, struct addrinfo* res) >
+        template < void (self_t::*fn)(uv_getaddrinfo_t* req, int status, struct addrinfo* res) >
         static void on_getaddrinfo(uv_getaddrinfo_t* req, int status, struct addrinfo* res) {
             (self(req)->*fn)(req, status, res); delete req; }
+        template < void (self_t::*fn)(int status, struct addrinfo* res) >
+        static void on_getaddrinfo(uv_getaddrinfo_t* req, int status, struct addrinfo* res) {
+            (self(req)->*fn)(status, res); delete req; }
         static void on_getaddrinfo(uv_getaddrinfo_t* req, int status, struct addrinfo* res) {
             on_getaddrinfo<&self_t::on_getaddrinfo>(req, status, res); }
 
@@ -269,6 +289,4 @@ namespace uvObj {
         static void on_fs_poll(uv_fs_poll_t* handle, int status, const uv_statbuf_t* prev, const uv_statbuf_t* curr) {
             on_fs_poll<&self_t::on_fs_poll>(handle, status, prev, curr); }
     };
-
-
 }

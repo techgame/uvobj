@@ -9,54 +9,10 @@
 
 #pragma once
 #include "./uvObj_base.hpp"
+#include "./uvObj_utils.hpp"
 #include "./uvObj_requests.hpp"
 
 namespace uvObj {
-    struct IP {
-        union {
-            struct sockaddr raw;
-            struct sockaddr_in src;
-            struct sockaddr_in6 src6;
-        };
-
-        int port() {
-            if (raw.sa_family == PF_INET)
-                return ntohs(src.sin_port);
-            else if (raw.sa_family == PF_INET6)
-                return ntohs(src6.sin6_port);
-            else return 0; }
-        std::string name() {
-            char buf[256] = {0};
-            if (raw.sa_family == PF_INET)
-                if (0 == uv_ip4_name(&src, buf, sizeof(buf)))
-                    return buf;
-            else if (raw.sa_family == PF_INET6)
-                if (0 == uv_ip6_name(&src6, buf, sizeof(buf)))
-                    return buf;
-            return ""; }
-        std::string url(const char* schema=NULL, const char* path="") {
-            char buf[8192] = {0};
-            snprintf(buf, sizeof(buf), schema ? "%s://%s:%d%s" : "%s%s:%d%s",
-                    schema, name().c_str(), port(), path);
-            return buf; }
-        std::string format(const char* fmt="%s:%d") {
-            char buf[1024] = {0};
-            snprintf(buf, sizeof(buf), fmt, name().c_str(), port());
-            return buf; }
-
-        void set(const char* ip, int port) {
-            src = uv_ip4_addr(ip, port); }
-        void set6(const char* ip, int port) {
-            src6 = uv_ip6_addr(ip, port); }
-
-        static struct sockaddr_in addr(const char* ip, int port) {
-            return uv_ip4_addr(ip, port); }
-        static struct sockaddr_in6 addr6(const char* ip, int port) {
-            return uv_ip6_addr(ip, port); }
-    };
-
-    /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-
     struct UDP : Handle_t< uv_udp_t > {
         typedef Handle_t< uv_udp_t > Base_t;
         UDP(uv_loop_t* loop) : Base_t() { init(loop); }
@@ -76,8 +32,8 @@ namespace uvObj {
             Base_t::uvRes( uv_udp_bind6(*this, addr, flags) ); }
         std::string getsockurl(const char* schema="udp", const char* path="") {
             return getsockname().url(schema, path); }
-        IP getsockname() { IP addr; int len=sizeof(addr.raw);
-            uv_udp_getsockname(*this, &addr.raw, &len);
+        IP getsockname() { IP addr; int len=sizeof(addr.sa);
+            uv_udp_getsockname(*this, &addr.sa.raw, &len);
             return addr; }
         void getsockname(struct sockaddr* name, int* namelen) {
             Base_t::uvRes( uv_udp_getsockname(*this, name, namelen) ); }
@@ -95,19 +51,6 @@ namespace uvObj {
         void set_ttl(int ttl) {
             Base_t::uvRes( uv_udp_set_ttl(*this, ttl) ); }
 
-        void send(uv_udp_send_t* req, uv_buf_t bufs[], int bufcnt,
-                const char* ip, int port, uv_udp_send_cb cb) {
-            Base_t::uvRes( uv_udp_send(req, *this, bufs, bufcnt, IP::addr(ip, port), cb) ); }
-        void send6(uv_udp_send_t* req, uv_buf_t bufs[], int bufcnt,
-                const char* ip, int port, uv_udp_send_cb cb) {
-            Base_t::uvRes( uv_udp_send6(req, *this, bufs, bufcnt, IP::addr6(ip, port), cb) ); }
-        void send(uv_udp_send_t* req, uv_buf_t bufs[], int bufcnt,
-                const struct sockaddr_in& addr, uv_udp_send_cb cb) {
-            Base_t::uvRes( uv_udp_send(req, *this, bufs, bufcnt, addr, cb) ); }
-        void send6(uv_udp_send_t* req, uv_buf_t bufs[], int bufcnt,
-                const struct sockaddr_in6& addr, uv_udp_send_cb cb) {
-            Base_t::uvRes( uv_udp_send6(req, *this, bufs, bufcnt, addr, cb) ); }
-
         void recv_start(uv_alloc_cb alloc_cb, uv_udp_recv_cb recv_cb) {
             Base_t::uvRes( uv_udp_recv_start(*this, alloc_cb, recv_cb) ); }
         template <typename T>
@@ -115,6 +58,47 @@ namespace uvObj {
             Base_t::setData(self); recv_start(T::evt::on_alloc, T::evt::on_recv); }
         void recv_stop() {
             Base_t::uvRes( uv_udp_recv_stop(*this) ); }
+
+        void send(uv_udp_send_t* req, uv_buf_t bufs[], int bufcnt,
+                const char* ip, int port, uv_udp_send_cb cb) {
+            Base_t::uvRes( uv_udp_send(req, *this, bufs, bufcnt, IP::addr(ip, port), cb) ); }
+        void send(uv_udp_send_t* req, uv_buf_t bufs[], int bufcnt,
+                const struct sockaddr_in& addr, uv_udp_send_cb cb) {
+            Base_t::uvRes( uv_udp_send(req, *this, bufs, bufcnt, addr, cb) ); }
+
+        void send6(uv_udp_send_t* req, uv_buf_t bufs[], int bufcnt,
+                const char* ip, int port, uv_udp_send_cb cb) {
+            Base_t::uvRes( uv_udp_send6(req, *this, bufs, bufcnt, IP::addr6(ip, port), cb) ); }
+        void send6(uv_udp_send_t* req, uv_buf_t bufs[], int bufcnt,
+                const struct sockaddr_in6& addr, uv_udp_send_cb cb) {
+            Base_t::uvRes( uv_udp_send6(req, *this, bufs, bufcnt, addr, cb) ); }
+
+        UDPSend* sendOp() { return new UDPSend(*this, true); }
+        void send(uv_buf_t buf, const char* ip, int port) {
+            sendOp()->push(buf)->send(ip, port); }
+        void send(const char* buf, const char* ip, int port) {
+            sendOp()->push(buf)->send(ip, port); }
+        void send(const char* buf, unsigned int len, const char* ip, int port) {
+            sendOp()->push(buf, len)->send(ip, port); }
+        void send6(uv_buf_t buf, const char* ip, int port) {
+            sendOp()->push(buf)->send6(ip, port); }
+        void send6(const char* buf, const char* ip, int port) {
+            sendOp()->push(buf)->send6(ip, port); }
+        void send6(const char* buf, unsigned int len, const char* ip, int port) {
+            sendOp()->push(buf, len)->send6(ip, port); }
+
+        void send(uv_buf_t buf, const struct sockaddr_in& addr) {
+            sendOp()->push(buf)->send(addr); }
+        void send(const char* buf, const struct sockaddr_in& addr) {
+            sendOp()->push(buf)->send(addr); }
+        void send(const char* buf, unsigned int len, const struct sockaddr_in& addr) {
+            sendOp()->push(buf, len)->send(addr); }
+        void send6(uv_buf_t buf, const struct sockaddr_in6& addr) {
+            sendOp()->push(buf)->send6(addr); }
+        void send6(const char* buf, const struct sockaddr_in6& addr) {
+            sendOp()->push(buf)->send6(addr); }
+        void send6(const char* buf, unsigned int len, const struct sockaddr_in6& addr) {
+            sendOp()->push(buf, len)->send6(addr); }
     };
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -162,31 +146,28 @@ namespace uvObj {
         void write2(uv_write_t* req, uv_buf_t bufs[], int bufcnt, uv_stream_t* send_handle, uv_write_cb cb) {
             Base_t::uvRes( uv_write2(req, *this, bufs, bufcnt, send_handle, cb) ); }
 
+        StreamWrite* writeOp() { return new StreamWrite(*this, true); }
         void write(uv_buf_t buf) {
-            Write(buf).write(*this); }
+            writeOp()->push(buf)->write(); }
         void write(const char* buf) {
-            Write(buf).write(*this); }
+            writeOp()->push(buf)->write(); }
         void write(const char* buf, unsigned int len) {
-            Write(buf, len).write(*this); }
+            writeOp()->push(buf, len)->write(); }
 
         void write2(uv_buf_t buf, uv_stream_t* send_handle) {
-            Write(buf).write2(*this, send_handle); }
+            writeOp()->push(buf)->write(send_handle); }
         void write2(const char* buf, uv_stream_t* send_handle) {
-            Write(buf).write2(*this, send_handle); }
+            writeOp()->push(buf)->write2(send_handle); }
         void write2(const char* buf, unsigned int len, uv_stream_t* send_handle) {
-            Write(buf, len).write2(*this, send_handle); }
+            writeOp()->push(buf, len)->write2(send_handle); }
 
         void shutdown(uv_shutdown_t* req, uv_shutdown_cb cb) {
             Base_t::uvRes( uv_shutdown(req, *this, cb) ); }
 
-        void shutdown() {
-            Shutdown().perform(*this); }
+        ShutdownOp* shutdownOp() { return new ShutdownOp(*this, true); }
+        void shutdown() { shutdownOp()->shutdown(); }
         template <typename T>
-        void shutdown(T* self) {
-            Shutdown(self).perform(*this); }
-        template <typename T>
-        void shutdown(T* self, uv_shutdown_cb cb) {
-            Shutdown(self, cb).perform(*this); }
+        void shutdown(T* self) { shutdownOp()->bind(self)->shutdown(); }
     };
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -220,11 +201,11 @@ namespace uvObj {
             return getsockname().url(schema, path); }
         std::string getpeerurl(const char* schema="tcp", const char* path="") {
             return getpeername().url(schema, path); }
-        IP getsockname() { IP addr; int len=sizeof(addr.raw);
-            uv_tcp_getsockname(*this, &addr.raw, &len);
+        IP getsockname() { IP addr; int len=sizeof(addr.sa);
+            uv_tcp_getsockname(*this, &addr.sa.raw, &len);
             return addr; }
-        IP getpeername() { IP addr; int len=sizeof(addr.raw);
-            uv_tcp_getpeername(*this, &addr.raw, &len);
+        IP getpeername() { IP addr; int len=sizeof(addr.sa);
+            uv_tcp_getpeername(*this, &addr.sa.raw, &len);
             return addr; }
         void getsockname(struct sockaddr* name, int* namelen) {
             Base_t::uvRes( uv_tcp_getsockname(*this, name, namelen) ); }
@@ -240,22 +221,11 @@ namespace uvObj {
         void connect6(uv_connect_t* req, const struct sockaddr_in6& addr, uv_connect_cb cb) {
             Base_t::uvRes( uv_tcp_connect6(req, *this, addr, cb) ); }
 
-        void connect(const char* ip, int port) {
-            Connect().connect(*this, ip, port); }
-        void connect6(const char* ip, int port) {
-            Connect().connect6(*this, ip, port); }
-        template <typename T>
-        void connect(T* self, const char* ip, int port) {
-            Connect(self).connect(*this, ip, port); }
-        template <typename T>
-        void connect6(T* self, const char* ip, int port) {
-            Connect(self).connect6(*this, ip, port); }
-        template <typename T>
-        void connect(T* self, uv_connect_cb cb, const char* ip, int port) {
-            Connect(self, cb).connect(*this, ip, port); }
-        template <typename T>
-        void connect6(T* self, uv_connect_cb cb, const char* ip, int port) {
-            Connect(self, cb).connect6(*this, ip, port); }
+        TCPConnectOp* connectOp() { return new TCPConnectOp(*this, true); }
+        void connect(const char* ip, int port) { connectOp()->connect(ip, port); }
+        void connect(const struct sockaddr_in& addr) { connectOp()->connect(addr); }
+        void connect6(const char* ip, int port) { connectOp()->connect6(ip, port); }
+        void connect6(const struct sockaddr_in6& addr) { connectOp()->connect6(addr); }
     };
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -296,8 +266,12 @@ namespace uvObj {
             uv_pipe_open(*this, file); }
         void bind(uv_pipe_t* handle, const char* name) {
             Base_t::uvRes( uv_pipe_bind(*this, name) ); }
+
         void connect(uv_connect_t* req, const char* name, uv_connect_cb cb) {
             uv_pipe_connect(req, *this, name, cb); }
+        PipeConnect* connectOp() { return new PipeConnect(*this, true); }
+        void connect(const char* name) { connectOp()->connect(name); }
+
         void pending_instances(int count) {
             uv_pipe_pending_instances(*this, count); }
     };
