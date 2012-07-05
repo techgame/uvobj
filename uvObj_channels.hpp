@@ -189,6 +189,8 @@ namespace uvObj {
             Base_t::uvRes( uv_tcp_keepalive(*this, enable, delay) ); }
         void simultaneous_accepts(bool enable) {
             Base_t::uvRes( uv_tcp_simultaneous_accepts(*this, enable) ); }
+        void bind(const char* ip, int port, bool ipv6) {
+            if (!ipv6) bind(ip,port); else bind6(ip,port); }
         void bind(const char* ip, int port) {
             Base_t::uvRes( uv_tcp_bind(*this, IP::addr(ip, port)) ); }
         void bind6(const char* ip, int port) {
