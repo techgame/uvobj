@@ -179,6 +179,8 @@ namespace uvObj {
         void shutdown(uv_shutdown_t* req, uv_shutdown_cb cb) {
             Base_t::uvRes( uv_shutdown(req, *this, cb) ); }
 
+        void shutdown() {
+            Shutdown().perform(*this); }
         template <typename T>
         void shutdown(T* self) {
             Shutdown(self).perform(*this); }
@@ -228,6 +230,7 @@ namespace uvObj {
             Base_t::uvRes( uv_tcp_getsockname(*this, name, namelen) ); }
         void getpeername(struct sockaddr* name, int* namelen) {
             Base_t::uvRes( uv_tcp_getpeername(*this, name, namelen) ); }
+
         void connect(uv_connect_t* req, const char* ip, int port, uv_connect_cb cb) {
             Base_t::uvRes( uv_tcp_connect(req, *this, IP::addr(ip, port), cb) ); }
         void connect6(uv_connect_t* req, const char* ip, int port, uv_connect_cb cb) {
@@ -236,6 +239,23 @@ namespace uvObj {
             Base_t::uvRes( uv_tcp_connect(req, *this, addr, cb) ); }
         void connect6(uv_connect_t* req, const struct sockaddr_in6& addr, uv_connect_cb cb) {
             Base_t::uvRes( uv_tcp_connect6(req, *this, addr, cb) ); }
+
+        void connect(const char* ip, int port) {
+            Connect().connect(*this, ip, port); }
+        void connect6(const char* ip, int port) {
+            Connect().connect6(*this, ip, port); }
+        template <typename T>
+        void connect(T* self, const char* ip, int port) {
+            Connect(self).connect(*this, ip, port); }
+        template <typename T>
+        void connect6(T* self, const char* ip, int port) {
+            Connect(self).connect6(*this, ip, port); }
+        template <typename T>
+        void connect(T* self, uv_connect_cb cb, const char* ip, int port) {
+            Connect(self, cb).connect(*this, ip, port); }
+        template <typename T>
+        void connect6(T* self, uv_connect_cb cb, const char* ip, int port) {
+            Connect(self, cb).connect6(*this, ip, port); }
     };
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/

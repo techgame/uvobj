@@ -17,16 +17,11 @@ namespace uvObj {
         typedef uvObj::req_events_t<Connect> evt;
 
         Connect() { init(this); }
+        Connect* init(void* self, uv_connect_cb cb) {
+            Base_t::setCallback(self, cb);
+            return this; }
         template <typename T>
-        Connect(T* self) { init(self); }
-        template <typename T>
-        Connect(T* self, uv_connect_cb cb) { init(self, cb); }
-
-        template <typename T>
-        void init(T* self, uv_connect_cb cb) {
-            Base_t::setData(self); Base_t::_ref_->cb = cb; }
-        template <typename T>
-        void init(T* self) { init(self, T::evt::on_connect); }
+        Connect* init(T* self) { return init(self, T::evt::on_connect); }
 
         template <typename uvobj_t>
         void connect(uvobj_t& obj, const char* ip, int port) {
@@ -59,7 +54,7 @@ namespace uvObj {
 
         template <typename T>
         void init(T* self, uv_shutdown_cb cb) {
-            Base_t::setData(self); Base_t::_ref_->cb = cb; }
+            Base_t::setCallback(self, cb); }
         template <typename T>
         void init(T* self) { init(self, T::evt::on_shutdown); }
 
@@ -74,21 +69,8 @@ namespace uvObj {
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-    template <typename uv_t>
-    struct SendReq_t : Ref_t< uv_t > {
-        typedef Ref_t< uv_write_t > Base_t;
-        std::vector<uv_buf_t> bufs;
-
-        void push(uv_buf_t buf) { bufs.push_back(buf); }
-        void push(const char* buf) { push(buf, ::strlen(buf)); }
-        void push(const char* buf, unsigned int len) {
-            bufs.push_back(uv_buf_init(const_cast<char*>(buf), len)); }
-    };
-
-    /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-
-    struct UDPSend : SendReq_t< uv_udp_send_t > {
-        typedef SendReq_t< uv_udp_send_t > Base_t;
+    struct UDPSend : Ref_t< uv_udp_send_t > {
+        typedef Ref_t< uv_udp_send_t > Base_t;
         typedef uvObj::req_events_t<UDPSend> evt;
 
         UDPSend() { init(this); }
@@ -97,15 +79,22 @@ namespace uvObj {
         UDPSend(const char* buf, unsigned int len) { init(this); push(buf, len); }
 
         template <typename T>
-        UDPSend(T* self) { Base_t::setData(self); _ref_->cb = T::on_udp_send; }
+        UDPSend(T* self) { init(self, T::on_udp_send); }
         template <typename T>
         UDPSend(T* self, uv_udp_send_cb cb) { init(self, cb); }
 
         template <typename T>
         void init(T* self, uv_udp_send_cb cb) {
-            Base_t::setData(self); Base_t::_ref_->cb = cb; }
+            Base_t::setCallback(self, cb); }
         template <typename T>
         void init(T* self) { init(self, T::evt::on_udp_send); }
+
+        std::vector<uv_buf_t> bufs;
+        UDPSend& push(uv_buf_t buf) { bufs.push_back(buf); return *this; }
+        UDPSend& push(const char* buf) { return push(buf, ::strlen(buf)); }
+        UDPSend& push(const char* buf, unsigned int len) {
+            bufs.push_back(uv_buf_init(const_cast<char*>(buf), len));
+            return *this; }
 
         template <typename uvobj_t>
         void send(uvobj_t& obj, const char* ip, int port) {
@@ -126,8 +115,8 @@ namespace uvObj {
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-    struct Write : SendReq_t< uv_write_t > {
-        typedef SendReq_t< uv_write_t > Base_t;
+    struct Write : Ref_t< uv_write_t > {
+        typedef Ref_t< uv_write_t > Base_t;
         typedef uvObj::req_events_t<Write> evt;
 
         Write() { init(this); }
@@ -142,9 +131,16 @@ namespace uvObj {
 
         template <typename T>
         void init(T* self, uv_write_cb cb) {
-            Base_t::setData(self); Base_t::_ref_->cb = cb; }
+            Base_t::setCallback(self, cb); }
         template <typename T>
         void init(T* self) { init(self, T::evt::on_write); }
+
+        std::vector<uv_buf_t> bufs;
+        Write& push(uv_buf_t buf) { bufs.push_back(buf); return *this; }
+        Write& push(const char* buf) { return push(buf, ::strlen(buf)); }
+        Write& push(const char* buf, unsigned int len) {
+            bufs.push_back(uv_buf_init(const_cast<char*>(buf), len));
+            return *this; }
 
         template <typename uvobj_t>
         void write(uvobj_t& obj) {

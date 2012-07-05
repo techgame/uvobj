@@ -58,16 +58,20 @@ namespace uvObj {
             return uvResult(res, loop()); }        
 
         template <typename data_t>
-        inline data_t data() { return reinterpret_cast<data_t>(_ref_ ? _ref_->data : NULL); }
-        template <typename data_t>
-        inline void setData(data_t data) { if (_ref_) _ref_->data = data; }
+        inline data_t data() {
+            return reinterpret_cast<data_t>(_ref_ ? _ref_->data : NULL); }
+        inline void setData(void* data) {
+            if (_ref_) _ref_->data = data; }
+        template <typename Fn>
+        inline void setCallback(void* data, Fn cb) {
+            if (!_ref_) return;
+            _ref_->data = data;
+            _ref_->cb = cb; }
         template <typename data_t>
         inline void delData() {
-            if (!_ref_) {
-                delete data<data_t>();
-                _ref_->data = NULL;
-            }
-        }
+            if (!_ref_) return;
+            delete reinterpret_cast<data_t>(_ref_->data);
+            _ref_->data = NULL; }
 
         uv_t* _ref_;
     };
