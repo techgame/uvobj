@@ -95,13 +95,13 @@ namespace uvObj {
         void set_ttl(int ttl) {
             Base_t::uvRes( uv_udp_set_ttl(*this, ttl) ); }
 
-        void send(uv_udp_send_t* req, uv_buf_t bufs[], int bufcnt, 
+        void send(uv_udp_send_t* req, uv_buf_t bufs[], int bufcnt,
                 const char* ip, int port, uv_udp_send_cb cb) {
             Base_t::uvRes( uv_udp_send(req, *this, bufs, bufcnt, IP::addr(ip, port), cb) ); }
         void send6(uv_udp_send_t* req, uv_buf_t bufs[], int bufcnt,
                 const char* ip, int port, uv_udp_send_cb cb) {
             Base_t::uvRes( uv_udp_send6(req, *this, bufs, bufcnt, IP::addr6(ip, port), cb) ); }
-        void send(uv_udp_send_t* req, uv_buf_t bufs[], int bufcnt, 
+        void send(uv_udp_send_t* req, uv_buf_t bufs[], int bufcnt,
                 const struct sockaddr_in& addr, uv_udp_send_cb cb) {
             Base_t::uvRes( uv_udp_send(req, *this, bufs, bufcnt, addr, cb) ); }
         void send6(uv_udp_send_t* req, uv_buf_t bufs[], int bufcnt,

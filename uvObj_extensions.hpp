@@ -11,7 +11,6 @@
 #include "./uvObj_channels.hpp"
 
 #if defined(WIN32)
-#define snprintf _snprintf
 #define _env_default NULL
 inline int setenv(const char *name, const char *value, int overwrite) {
     if (!overwrite && getenv(name)) return 0;
@@ -34,7 +33,7 @@ namespace uvObj {
         { init(); target(file, cwd); }
 
         void init() { ::memset(&opt, 0, sizeof(opt)); env(); }
-        
+
         ProcessEx& target(const char* file, const char* cwd=NULL) {
             if (v_args.size()<1) v_args.push_back(file);
             v_args[0] = opt.file = file;

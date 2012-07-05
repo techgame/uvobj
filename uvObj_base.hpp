@@ -11,6 +11,10 @@
 #include <string>
 #include <vector>
 
+#if defined(WIN32)
+#define snprintf _snprintf
+#endif
+
 #include <uv.h>
 
 #include "./uvObj_events.hpp"
@@ -55,7 +59,7 @@ namespace uvObj {
         inline bool uvRes(int res) const { return uvResult(res, loop()); }
         inline bool uvRes(int res, int ignore) const {
             if (res == ignore) return false;
-            return uvResult(res, loop()); }        
+            return uvResult(res, loop()); }
 
         template <typename data_t>
         inline data_t data() {
