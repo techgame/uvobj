@@ -10,22 +10,35 @@
 #pragma once
 #include "./uvObj_channels.hpp"
 
-#if defined(WIN32)
-#define _env_default NULL
-inline int setenv(const char *name, const char *value, int overwrite) {
-    if (!overwrite && getenv(name)) return 0;
-    size_t len = 3+::strlen(name)+::strlen(value);
-    char* buf = new char[len];
-    ::snprintf(buf, len, "%s=%s", name, value);
-    int res = _putenv(buf);
-    delete [] buf;
-    return res; }
-#else
 extern char **environ;
-#define _env_default environ
-#endif
 
 namespace uvObj {
+    
+    /* Scoped aliases for getenv / setenv system operations */
+    
+    inline const char* getenv(const char *name) { return ::getenv(name); }
+    
+#if defined(WIN32)
+    #define _env_default NULL
+    inline int setenv(const char *name, const char *value, int overwrite=1) {
+        if (!overwrite && getenv(name)) return 0;
+        size_t len = 3+::strlen(name)+::strlen(value);
+        char* buf = new char[len];
+        ::snprintf(buf, len, "%s=%s", name, value);
+        int res = _putenv(buf);
+        delete [] buf;
+        return res; }
+    
+#else
+    
+    #define _env_default environ
+    inline int setenv(const char *name, const char *value, int overwrite=1) {
+        return ::setenv(name, value, overwrite); }
+    
+#endif
+
+    
+    /* Extended Processes object with convenience methods */
 
     struct ProcessEx : Process {
         ProcessEx() : Process() { init(); }
