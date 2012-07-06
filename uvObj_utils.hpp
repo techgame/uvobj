@@ -44,13 +44,14 @@ namespace uvObj {
                     return buf;
             return ""; }
         std::string url(const char* schema=NULL, const char* path="") {
+            const char* pathSep = (path && path[0]!='/') ? "/" : "";
             char buf[8192] = {0};
             if (schema)
-                snprintf(buf, sizeof(buf), "%s://%s:%d%s",
-                    schema, name().c_str(), port(), path);
+                snprintf(buf, sizeof(buf), "%s://%s:%d%s%s",
+                    schema, name().c_str(), port(), pathSep, path);
             else
-                snprintf(buf, sizeof(buf), "%s:%d%s",
-                    name().c_str(), port(), path);
+                snprintf(buf, sizeof(buf), "%s:%d%s%s",
+                    name().c_str(), port(), pathSep, path);
             return buf; }
         std::string format(const char* fmt="%s:%d") {
             char buf[1024] = {0};
