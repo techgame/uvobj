@@ -13,19 +13,6 @@
 #include "./uvObj_events.hpp"
 
 namespace uvObj {
-    struct RequestSink {
-        typedef req_events_t< RequestSink > evt;
-
-        void on_connect(uv_connect_t* req, int status) {}
-        void on_shutdown(uv_shutdown_t* req, int status) {}
-        void on_udp_send(uv_udp_send_t* req, int status) {}
-        void on_write(uv_write_t* req, int status) {}
-        void on_work(uv_work_t* req) {}
-        void on_after_work(uv_work_t* req) {}
-        void on_getaddrinfo(uv_getaddrinfo_t* req, int status, struct addrinfo* res) {}
-    };
-    inline static RequestSink* req_noop() { return NULL; }
-
     template <typename uv_t, typename uv_handle_t>
     struct ReqRef_t : Ref_t< uv_t > {
         ReqRef_t(uv_handle_t* handle_p, bool delSelf=false)
@@ -47,7 +34,7 @@ namespace uvObj {
         typedef uvObj::req_events_t<TCPConnectOp> evt;
 
         TCPConnectOp(uv_tcp_t* handle, bool delSelf=false)
-         : Base_t(handle, delSelf) { bind(req_noop()); }
+         : Base_t(handle, delSelf) { bind(blackhole()); }
 
         TCPConnectOp* bind(void* self, uv_connect_cb cb) {
             Base_t::setCallback(self, cb); return this; }
@@ -73,7 +60,7 @@ namespace uvObj {
         typedef uvObj::req_events_t<PipeConnect> evt;
 
         PipeConnect(uv_pipe_t* handle, bool delSelf=false)
-         : Base_t(handle, delSelf) { bind(req_noop()); }
+         : Base_t(handle, delSelf) { bind(blackhole()); }
 
         PipeConnect* bind(void* self, uv_connect_cb cb) {
             Base_t::setCallback(self, cb); return this; }
@@ -93,7 +80,7 @@ namespace uvObj {
         typedef uvObj::req_events_t<ShutdownOp> evt;
 
         ShutdownOp(uv_stream_t* handle, bool delSelf=false)
-         : Base_t(handle, delSelf) { bind(req_noop()); }
+         : Base_t(handle, delSelf) { bind(blackhole()); }
 
         ShutdownOp* bind(void* self, uv_shutdown_cb cb) {
             Base_t::setCallback(self, cb); return this; }
@@ -113,7 +100,7 @@ namespace uvObj {
         typedef uvObj::req_events_t<UDPSend> evt;
 
         UDPSend(uv_udp_t* handle, bool delSelf=false)
-         : Base_t(handle, delSelf) { bind(req_noop()); }
+         : Base_t(handle, delSelf) { bind(blackhole()); }
 
         UDPSend* bind(void* self, uv_udp_send_cb cb) {
             Base_t::setCallback(self, cb); return this; }
@@ -145,7 +132,7 @@ namespace uvObj {
         typedef uvObj::req_events_t<StreamWrite> evt;
 
         StreamWrite(uv_stream_t* handle, bool delSelf=false)
-         : Base_t(handle, delSelf) { bind(req_noop()); }
+         : Base_t(handle, delSelf) { bind(blackhole()); }
 
         StreamWrite* bind(void* self, uv_write_cb cb) {
             Base_t::setCallback(self, cb); return this; }
@@ -190,7 +177,7 @@ namespace uvObj {
     struct GetAddrInfo : Ref_t< uv_getaddrinfo_t > {
         typedef Ref_t< uv_getaddrinfo_t > Base_t;
 
-        GetAddrInfo() { bind(req_noop()); }
+        GetAddrInfo() { bind(blackhole()); }
         GetAddrInfo* bind(void* self, uv_getaddrinfo_cb cb) {
             Base_t::setCallback(self, cb); return this; }
         template <typename T>

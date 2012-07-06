@@ -289,4 +289,39 @@ namespace uvObj {
         static void on_fs_poll(uv_fs_poll_t* handle, int status, const uv_statbuf_t* prev, const uv_statbuf_t* curr) {
             on_fs_poll<&self_t::on_fs_poll>(handle, status, prev, curr); }
     };
+
+    struct BlackHoleSink {
+        class _blackhole_obj {
+            template <typename uv_t>
+            _blackhole_obj(ref_mode_t m, uv_t* obj) {}
+        };
+
+        typedef events_t< BlackHoleSink, _blackhole_obj > evt;
+
+        void on_connect(uv_connect_t* req, int status) {}
+        void on_shutdown(uv_shutdown_t* req, int status) {}
+        void on_udp_send(uv_udp_send_t* req, int status) {}
+        void on_write(uv_write_t* req, int status) {}
+        void on_work(uv_work_t* req) {}
+        void on_after_work(uv_work_t* req) {}
+        void on_getaddrinfo(uv_getaddrinfo_t* req, int status, struct addrinfo* res) {}
+
+        /* Note: not suitable for NOOP implementation
+        uv_buf_t on_alloc(size_t suggested_size) {}
+        void on_recv(ssize_t nread, uv_buf_t buf, struct sockaddr* addr, unsigned flags) {}
+        void on_read(ssize_t nread, uv_buf_t buf) {}
+        void on_read2(ssize_t nread, uv_buf_t buf, uv_handle_type pending) {}
+        */
+
+        void on_close() {}
+        void on_connection(int status) {}
+        void on_poll(int status, int events) {}
+        void on_exit(int exit_status, int term_signal) {}
+        void on_prepare(int status) {}
+        void on_check(int status) {}
+        void on_idle(int status) {}
+        void on_async(int status) {}
+        void on_timer(int status) {}
+    };
+    inline static BlackHoleSink* blackhole() { return NULL; }
 }

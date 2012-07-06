@@ -103,7 +103,9 @@ namespace uvObj {
         void close(T* self) { Base_t::setData(self); close(T::evt::on_close); }
 
         static uv_buf_t buf_create(unsigned int len) {
-            return buf_init((char*)::malloc(len), len); }
+            char* buf = (char*)::malloc(len);
+            buf[len-1] = 0;
+            return buf_init(buf, len); }
         inline static uv_buf_t buf_init(char* base, unsigned int len) {
             return uv_buf_init(base, len); }
         static void buf_free(uv_buf_t& buf) {
