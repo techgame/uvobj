@@ -179,15 +179,30 @@ namespace uvObj {
 
         GetAddrInfo() { bind(blackhole()); }
         GetAddrInfo* bind(void* self, uv_getaddrinfo_cb cb) {
-            Base_t::setCallback(self, cb); return this; }
+            setCallback(self, cb); return this; }
         template <typename T>
         GetAddrInfo* bind(T* self) {
             return bind(self, T::evt::on_getaddrinfo); }
 
+        /* a little private api inconsistency */
+        #ifdef _WIN32
+        inline uv_getaddrinfo_cb callback() {
+            return Base_t::_ref_->getaddrinfo_cb; }
+        inline void setCallback(void* data, uv_getaddrinfo_cb cb) {
+            if (!Base_t::_ref_) return;
+            Base_t::_ref_->data = data;
+            Base_t::_ref_->getaddrinfo_cb = cb; }
+        #else
+        inline uv_getaddrinfo_cb callback() {
+            return _ref_->cb; }
+        inline void setCallback(void* data, uv_getaddrinfo_cb cb) {
+            Base_t::setCallback(data, cb); }
+        #endif
+
         void lookup(const char* node, const char* service, const struct addrinfo* hints=NULL) {
             lookup(NULL, node, service, hints); }
         void lookup(uv_loop_t* loop, const char* node, const char* service, const struct addrinfo* hints=NULL) {
-            Base_t::uvRes( uv_getaddrinfo(_as_loop(loop), *this, Base_t::_ref_->cb, node, service, hints) ); }
+            Base_t::uvRes( uv_getaddrinfo(_as_loop(loop), *this, callback(), node, service, hints) ); }
 
         static void freeaddrinfo(struct addrinfo* ai) { uv_freeaddrinfo(ai); }
     };

@@ -85,22 +85,21 @@ namespace uvObj {
             return *this; }
 
         ProcessEx& clear_stdio() { v_stdio.empty(); return *this; }
-        ProcessEx& stdio(uv_stdio_flags flags, uv_stream_t* stream) {
+        ProcessEx& add_stdio(uv_stdio_flags flags, uv_stream_t* stream) {
             uv_stdio_container_t c = {flags};
             c.data.stream = stream;
             v_stdio.push_back(c);
             return *this; }
-        ProcessEx& stdio(uv_stdio_flags flags, int fd) {
+        ProcessEx& add_stdio(uv_stdio_flags flags, int fd) {
             uv_stdio_container_t c = {flags};
             c.data.fd = fd;
             v_stdio.push_back(c);
             return *this; }
-        ProcessEx& stdio(int fd) { return stdio(UV_INHERIT_FD, fd); }
-        ProcessEx& stdin() { return stdio(UV_INHERIT_FD, 0); }
-        ProcessEx& stdout() { return stdio(UV_INHERIT_FD, 1); }
-        ProcessEx& stderr() { return stdio(UV_INHERIT_FD, 2); }
-        ProcessEx& stdio_all() { return stdio(UV_INHERIT_FD, 0)
-            .stdio(UV_INHERIT_FD, 1).stdio(UV_INHERIT_FD, 2); }
+        ProcessEx& pipe_stdio(int fd) { return add_stdio(UV_INHERIT_FD, fd); }
+        ProcessEx& pipe_stdin() { return pipe_stdio(0); }
+        ProcessEx& pipe_stdout() { return pipe_stdio(1); }
+        ProcessEx& pipe_stderr() { return pipe_stdio(2); }
+        ProcessEx& pipe_all() { return pipe_stdin().pipe_stdout().pipe_stderr(); }
 
         void spawn(uv_exit_cb cb=NULL) { spawn(NULL, cb); }
         void spawn(uv_loop_t* loop, uv_exit_cb cb=NULL) {
