@@ -10,16 +10,12 @@
 #pragma once
 #include "./uvObj_channels.hpp"
 
-extern char **environ;
 
-namespace uvObj {
-    
-    /* Scoped aliases for getenv / setenv system operations */
-    
-    inline const char* getenv(const char *name) { return ::getenv(name); }
-    
+/* Scoped aliases for getenv / setenv system operations */
+
 #if defined(WIN32)
-    #define _env_default NULL
+#define _env_default NULL
+namespace uvObj {
     inline int setenv(const char *name, const char *value, int overwrite=1) {
         if (!overwrite && getenv(name)) return 0;
         size_t len = 3+::strlen(name)+::strlen(value);
@@ -28,16 +24,32 @@ namespace uvObj {
         int res = _putenv(buf);
         delete [] buf;
         return res; }
-    
+}
 #else
-    
-    #define _env_default environ
+
+    #if defined(__APPLE__) && !TARGET_OS_IPHONE
+        #include <crt_externs.h>
+        #define _env_default (*_NSGetEnviron())
+    #elif defined(__APPLE__) && TARGET_OS_IPHONE
+        #define _env_default NULL
+    #else
+        extern char** environ;
+        #define _env_default environ
+    #endif
+
+namespace uvObj {
     inline int setenv(const char *name, const char *value, int overwrite=1) {
         return ::setenv(name, value, overwrite); }
-    
+}
 #endif
 
-    
+namespace uvObj {
+    inline const char* getenv(const char *name) { return ::getenv(name); }
+    inline char** environ() { return _env_default; }
+}
+
+
+namespace uvObj {
     /* Extended Processes object with convenience methods */
 
     struct ProcessEx : Process {
@@ -67,6 +79,10 @@ namespace uvObj {
             if (arg2) v_args.push_back(arg2);
             if (arg3) v_args.push_back(arg3);
             return *this; }
+        ProcessEx& arg(const char* arg) {
+            while (v_args.back() == NULL) v_args.pop_back();
+            if (arg) v_args.push_back(arg);
+            return *this; }
 
         ProcessEx& clear_stdio() { v_stdio.empty(); return *this; }
         ProcessEx& stdio(uv_stdio_flags flags, uv_stream_t* stream) {
@@ -80,6 +96,9 @@ namespace uvObj {
             v_stdio.push_back(c);
             return *this; }
         ProcessEx& stdio(int fd) { return stdio(UV_INHERIT_FD, fd); }
+        ProcessEx& stdin() { return stdio(UV_INHERIT_FD, 0); }
+        ProcessEx& stdout() { return stdio(UV_INHERIT_FD, 1); }
+        ProcessEx& stderr() { return stdio(UV_INHERIT_FD, 2); }
         ProcessEx& stdio_all() { return stdio(UV_INHERIT_FD, 0)
             .stdio(UV_INHERIT_FD, 1).stdio(UV_INHERIT_FD, 2); }
 
@@ -95,6 +114,9 @@ namespace uvObj {
         template <typename T>
         void spawn(T* self, uv_loop_t* loop=NULL) {
             Base_t::setData(self); spawn(loop, T::evt::on_exit); }
+        template <typename T>
+        void spawn(T* self, uv_exit_cb cb, uv_loop_t* loop=NULL) {
+            Base_t::setData(self); spawn(loop, cb); }
 
         uv_process_options_t opt;
         std::vector<const char*> v_args;
