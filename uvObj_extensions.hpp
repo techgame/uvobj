@@ -14,16 +14,30 @@
 /* Scoped aliases for getenv / setenv system operations */
 
 #if defined(WIN32)
-#define _env_default NULL
+    #define _env_default NULL
+
 namespace uvObj {
+    inline char** environ() { return _env_default; }
+    inline const char* getenv(const char *name) { return ::getenv(name); }
     inline int setenv(const char *name, const char *value, int overwrite=1) {
         if (!overwrite && getenv(name)) return 0;
-        size_t len = 3+::strlen(name)+::strlen(value);
-        char* buf = new char[len];
-        ::snprintf(buf, len, "%s=%s", name, value);
-        int res = _putenv(buf);
-        delete [] buf;
-        return res; }
+        return ::SetEnvironmentVariableA(name, value) ? 0 : -1; }
+    struct environ_walk {
+        LPTCH root;
+        const char* _tip;
+        environ_walk() { root = ::GetEnvironmentStringsA(); _tip = root; }
+        ~environ_walk() { ::FreeEnvironmentStringsA(root); };
+        bool operator !() { return !_tip; }
+        operator bool() { return !!_tip; }
+        void reset() { _tip = root; }
+        const char* tip() { return _tip; }
+        const char* next() {
+            if (!_tip) return NULL;
+            const char* res = _tip;
+            _tip += 1+::strlen(_tip);
+            if (!_tip[0]) _tip = NULL;
+            return res; }
+    };
 }
 #else
 
@@ -38,16 +52,22 @@ namespace uvObj {
     #endif
 
 namespace uvObj {
+    inline char** environ() { return _env_default; }
+    inline const char* getenv(const char *name) { return ::getenv(name); }
     inline int setenv(const char *name, const char *value, int overwrite=1) {
         return ::setenv(name, value, overwrite); }
+
+    struct environ_walk {
+        char** root;
+        environ_walk() { root = uvObj::environ(); }
+        bool operator !() { return !root || !root[0]; }
+        operator bool() { return root && root[0]; }
+        void reset() { root = uvObj::environ(); }
+        const char* tip() { return root ? root[0] : NULL; }
+        const char* next() { return root ? root++[0] : NULL; }
+    };
 }
 #endif
-
-namespace uvObj {
-    inline const char* getenv(const char *name) { return ::getenv(name); }
-    inline char** environ() { return _env_default; }
-}
-
 
 namespace uvObj {
     /* Extended Processes object with convenience methods */
