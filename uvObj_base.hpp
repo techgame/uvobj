@@ -25,8 +25,12 @@ namespace uvObj {
 
     struct error : std::exception {
         error(uv_loop_t* loop, int res_p) : res(res_p) {
-            if (loop == NULL) loop = uv_default_loop();
-            err = uv_last_error(loop); }
+            if (res == -1) {
+                err.code = UV_UNKNOWN; err.sys_errno_ = 0;
+            } else {
+                if (loop == NULL) loop = uv_default_loop();
+                err = uv_last_error(loop);
+            }}
         error(uv_loop_t* loop, uv_err_t err_p, int res_p=0)
          : res(res_p), err(err_p) {}
         const char* strerror() const { return uv_strerror(err); }
