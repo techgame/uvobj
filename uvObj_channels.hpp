@@ -266,7 +266,7 @@ namespace uvObj {
             Base_t::uvRes( uv_pipe_init(_as_loop(loop), *this, ipc) ); }
         void open(uv_file file) {
             uv_pipe_open(*this, file); }
-        void bind(uv_pipe_t* handle, const char* name) {
+        void bind(const char* name) {
             Base_t::uvRes( uv_pipe_bind(*this, name) ); }
 
         void connect(uv_connect_t* req, const char* name, uv_connect_cb cb) {
