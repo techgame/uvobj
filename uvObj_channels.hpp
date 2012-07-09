@@ -115,7 +115,7 @@ namespace uvObj {
         Stream_t() : Base_t() {}
 
         inline uv_stream_t* asStream() {
-            return reinterpret_cast<uv_stream_t*>(Base_t::_ref_); }
+            return reinterpret_cast<uv_stream_t*>(Base_t::uv); }
         inline operator uv_stream_t*() { return asStream(); }
 
         void listen(int backlog, uv_connection_cb cb) {

@@ -51,14 +51,14 @@ namespace uvObj {
     struct Ref_t {
         typedef uv_type uv_t;
 
-        Ref_t() : _ref_(new uv_t) { ::memset(_ref_, 0, sizeof(uv_t)); }
-        explicit Ref_t(ref_mode_t m, uv_t* ref) : _ref_(ref) {}
+        Ref_t() : uv(new uv_t) { ::memset(uv, 0, sizeof(uv_t)); }
+        explicit Ref_t(ref_mode_t m, uv_t* ref) : uv(ref) {}
 
-        inline operator uv_t* () { return _ref_; }
+        inline operator uv_t* () { return uv; }
 
-        void destroy() { delete _ref_; _ref_ = NULL; }
+        void destroy() { delete uv; uv = NULL; }
 
-        inline uv_loop_t* loop() const { return _ref_->loop; }
+        inline uv_loop_t* loop() const { return uv->loop; }
         inline bool uvRes(int res) const { return uvResult(res, loop()); }
         inline bool uvRes(int res, int ignore) const {
             if (res == ignore) return false;
@@ -66,21 +66,21 @@ namespace uvObj {
 
         template <typename data_t>
         inline data_t data() {
-            return reinterpret_cast<data_t>(_ref_ ? _ref_->data : NULL); }
+            return reinterpret_cast<data_t>(uv ? uv->data : NULL); }
         inline void setData(void* data) {
-            if (_ref_) _ref_->data = data; }
+            if (uv) uv->data = data; }
         template <typename Fn>
         inline void setCallback(void* data, Fn cb) {
-            if (!_ref_) return;
-            _ref_->data = data;
-            _ref_->cb = cb; }
+            if (!uv) return;
+            uv->data = data;
+            uv->cb = cb; }
         template <typename data_t>
         inline void delData() {
-            if (!_ref_) return;
-            delete reinterpret_cast<data_t>(_ref_->data);
-            _ref_->data = NULL; }
+            if (!uv) return;
+            delete reinterpret_cast<data_t>(uv->data);
+            uv->data = NULL; }
 
-        uv_t* _ref_;
+        uv_t* uv;
     };
 
     template <typename uv_t >
@@ -90,7 +90,7 @@ namespace uvObj {
         explicit Handle_t(ref_mode_t m, uv_t* ref) : Base_t(m, ref) {}
 
         inline uv_handle_t* asHandle() {
-            return reinterpret_cast<uv_handle_t*>(Base_t::_ref_); }
+            return reinterpret_cast<uv_handle_t*>(Base_t::uv); }
         inline operator uv_handle_t* () { return asHandle(); }
 
         void ref() { uv_ref(asHandle()); }

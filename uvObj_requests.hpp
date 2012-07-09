@@ -45,13 +45,13 @@ namespace uvObj {
         void connect(const char* ip, int port) {
             connect(IP::addr(ip, port)); }
         void connect(const struct sockaddr_in& addr) {
-            Base_t::uvReqRes( uv_tcp_connect(*this, _handle, addr, Base_t::_ref_->cb) );
+            Base_t::uvReqRes( uv_tcp_connect(*this, _handle, addr, Base_t::uv->cb) );
             finalizeRequest(); }
 
         void connect6(const char* ip, int port) {
             connect6(IP::addr6(ip, port)); }
         void connect6(const struct sockaddr_in6& addr) {
-            Base_t::uvReqRes( uv_tcp_connect6(*this, _handle, addr, Base_t::_ref_->cb) );
+            Base_t::uvReqRes( uv_tcp_connect6(*this, _handle, addr, Base_t::uv->cb) );
             finalizeRequest(); }
     };
 
@@ -69,7 +69,7 @@ namespace uvObj {
             return bind(self, T::evt::on_connect); }
 
         void connect(const char* name) {
-            uv_pipe_connect(*this, _handle, name, Base_t::_ref_->cb);
+            uv_pipe_connect(*this, _handle, name, Base_t::uv->cb);
             finalizeRequest(); }
     };
 
@@ -89,7 +89,7 @@ namespace uvObj {
             return bind(self, T::evt::on_shutdown); }
 
         void shutdown() {
-            Base_t::uvReqRes( uv_shutdown(*this, _handle, Base_t::_ref_->cb) );
+            Base_t::uvReqRes( uv_shutdown(*this, _handle, Base_t::uv->cb) );
             finalizeRequest(); }
     };
 
@@ -116,12 +116,12 @@ namespace uvObj {
 
         void send(const char* ip, int port) { send(IP::addr(ip, port)); }
         void send(const struct sockaddr_in& addr) {
-            Base_t::uvReqRes( uv_udp_send(*this, _handle, &bufs[0], bufs.size(), addr, Base_t::_ref_->cb) );
+            Base_t::uvReqRes( uv_udp_send(*this, _handle, &bufs[0], bufs.size(), addr, Base_t::uv->cb) );
             finalizeRequest(); }
 
         void send6(const char* ip, int port) { send6(IP::addr6(ip, port)); }
         void send6(const struct sockaddr_in6& addr) {
-            Base_t::uvReqRes( uv_udp_send6(*this, _handle, &bufs[0], bufs.size(), addr, Base_t::_ref_->cb) );
+            Base_t::uvReqRes( uv_udp_send6(*this, _handle, &bufs[0], bufs.size(), addr, Base_t::uv->cb) );
             finalizeRequest(); }
     };
 
@@ -147,11 +147,11 @@ namespace uvObj {
             bufs.push_back(uv_buf_init(const_cast<char*>(buf), len)); return this; }
 
         void write() {
-            Base_t::uvReqRes( uv_write(*this, _handle, &bufs[0], bufs.size(), Base_t::_ref_->cb) );
+            Base_t::uvReqRes( uv_write(*this, _handle, &bufs[0], bufs.size(), Base_t::uv->cb) );
             finalizeRequest(); }
         void write(uv_stream_t* send_handle) { write2(send_handle); }
         void write2(uv_stream_t* send_handle) {
-            Base_t::uvReqRes( uv_write2(*this, _handle, &bufs[0], bufs.size(), send_handle, Base_t::_ref_->cb) );
+            Base_t::uvReqRes( uv_write2(*this, _handle, &bufs[0], bufs.size(), send_handle, Base_t::uv->cb) );
             finalizeRequest(); }
     };
 
@@ -187,14 +187,14 @@ namespace uvObj {
         /* a little private api inconsistency */
         #ifdef _WIN32
         inline uv_getaddrinfo_cb callback() {
-            return Base_t::_ref_->getaddrinfo_cb; }
+            return Base_t::uv->getaddrinfo_cb; }
         inline void setCallback(void* data, uv_getaddrinfo_cb cb) {
-            if (!Base_t::_ref_) return;
-            Base_t::_ref_->data = data;
-            Base_t::_ref_->getaddrinfo_cb = cb; }
+            if (!Base_t::uv) return;
+            Base_t::uv->data = data;
+            Base_t::uv->getaddrinfo_cb = cb; }
         #else
         inline uv_getaddrinfo_cb callback() {
-            return _ref_->cb; }
+            return uv->cb; }
         inline void setCallback(void* data, uv_getaddrinfo_cb cb) {
             Base_t::setCallback(data, cb); }
         #endif
