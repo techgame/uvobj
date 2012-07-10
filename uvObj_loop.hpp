@@ -11,6 +11,10 @@
 #include "./uvObj_base.hpp"
 
 namespace uvObj {
+    static void initLibrary() {
+        uv_disable_stdio_inheritance();
+    }
+
     struct UVLoop {
         uv_loop_t* _loop;
         bool _ownsLoop;
