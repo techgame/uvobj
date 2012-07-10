@@ -73,32 +73,8 @@ namespace uvObj {
                 const struct sockaddr_in6& addr, uv_udp_send_cb cb) {
             Base_t::uvRes( uv_udp_send6(req, *this, bufs, bufcnt, addr, cb) ); }
 
-        UDPSend* sendOp() { return new UDPSend(*this, true); }
-        void send(uv_buf_t buf, const char* ip, int port) {
-            sendOp()->push(buf)->send(ip, port); }
-        void send(const char* buf, const char* ip, int port) {
-            sendOp()->push(buf)->send(ip, port); }
-        void send(const char* buf, unsigned int len, const char* ip, int port) {
-            sendOp()->push(buf, len)->send(ip, port); }
-        void send6(uv_buf_t buf, const char* ip, int port) {
-            sendOp()->push(buf)->send6(ip, port); }
-        void send6(const char* buf, const char* ip, int port) {
-            sendOp()->push(buf)->send6(ip, port); }
-        void send6(const char* buf, unsigned int len, const char* ip, int port) {
-            sendOp()->push(buf, len)->send6(ip, port); }
-
-        void send(uv_buf_t buf, const struct sockaddr_in& addr) {
-            sendOp()->push(buf)->send(addr); }
-        void send(const char* buf, const struct sockaddr_in& addr) {
-            sendOp()->push(buf)->send(addr); }
-        void send(const char* buf, unsigned int len, const struct sockaddr_in& addr) {
-            sendOp()->push(buf, len)->send(addr); }
-        void send6(uv_buf_t buf, const struct sockaddr_in6& addr) {
-            sendOp()->push(buf)->send6(addr); }
-        void send6(const char* buf, const struct sockaddr_in6& addr) {
-            sendOp()->push(buf)->send6(addr); }
-        void send6(const char* buf, unsigned int len, const struct sockaddr_in6& addr) {
-            sendOp()->push(buf, len)->send6(addr); }
+        UDPSend* sendOp(bool useBufFree) {
+            return (new UDPSend(*this, true))->bindCleanup(useBufFree); }
     };
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -126,6 +102,8 @@ namespace uvObj {
         void accept(uv_stream_t* client) {
             Base_t::uvRes( uv_accept(*this, client) ); }
 
+        bool wasEOF() { return UV_EOF == Base_t::last_error(); }
+
         bool is_readable() { return uv_is_readable(*this) != 0; }
         void read_start(uv_alloc_cb alloc_cb, uv_read_cb read_cb) {
             Base_t::uvRes( uv_read_start(*this, alloc_cb, read_cb) ); }
@@ -146,20 +124,8 @@ namespace uvObj {
         void write2(uv_write_t* req, uv_buf_t bufs[], int bufcnt, uv_stream_t* send_handle, uv_write_cb cb) {
             Base_t::uvRes( uv_write2(req, *this, bufs, bufcnt, send_handle, cb) ); }
 
-        StreamWrite* writeOp() { return new StreamWrite(*this, true); }
-        void write(uv_buf_t buf) {
-            writeOp()->push(buf)->write(); }
-        void write(const char* buf) {
-            writeOp()->push(buf)->write(); }
-        void write(const char* buf, unsigned int len) {
-            writeOp()->push(buf, len)->write(); }
-
-        void write2(uv_buf_t buf, uv_stream_t* send_handle) {
-            writeOp()->push(buf)->write(send_handle); }
-        void write2(const char* buf, uv_stream_t* send_handle) {
-            writeOp()->push(buf)->write2(send_handle); }
-        void write2(const char* buf, unsigned int len, uv_stream_t* send_handle) {
-            writeOp()->push(buf, len)->write2(send_handle); }
+        StreamWrite* writeOp(bool useBufFree) {
+            return (new StreamWrite(*this, true))->bindCleanup(useBufFree); }
 
         void shutdown(uv_shutdown_t* req, uv_shutdown_cb cb) {
             Base_t::uvRes( uv_shutdown(req, *this, cb) ); }

@@ -23,6 +23,13 @@ namespace uvObj {
     inline uv_loop_t* _as_loop(uv_loop_t* loop=NULL) {
         return loop ? loop : uv_default_loop(); }
 
+    typedef void (*uv_buf_release_cb)(uv_buf_t& buf);
+    inline static void buf_free(uv_buf_t& buf) {
+        if (!buf.base || !buf.len) return;
+        ::free(buf.base);
+        buf.base = NULL;
+        buf.len = 0; }
+
     struct error : std::exception {
         error(uv_loop_t* loop, int res_p) : res(res_p) {
             if (res == -1) {
@@ -113,10 +120,7 @@ namespace uvObj {
         inline static uv_buf_t buf_init(char* base, unsigned int len) {
             return uv_buf_init(base, len); }
         static void buf_free(uv_buf_t& buf) {
-            if (!buf.base || !buf.len) return;
-            ::free(buf.base);
-            buf.base = NULL;
-            buf.len = 0; }
+            uvObj::buf_free(buf); }
     };
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/

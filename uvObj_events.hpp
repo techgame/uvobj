@@ -127,6 +127,26 @@ namespace uvObj {
     };
 
     template <typename self_t>
+    struct req_events_proxy_t {
+        template <typename uv_t>
+        inline static self_t* self(uv_t* ref) {
+            return reinterpret_cast<self_t*>(ref->data); }
+
+        // uv_udp_send_cb
+        template < void (self_t::*fn)(uv_udp_send_t* req, int status) >
+        static void on_udp_send(uv_udp_send_t* req, int status) {
+            (self(req)->*fn)(req, status); }
+        static void on_udp_send(uv_udp_send_t* req, int status) {
+            on_udp_send<&self_t::on_udp_send>(req, status); }
+        // uv_write_cb
+        template < void (self_t::*fn)(uv_write_t* req, int status) >
+        static void on_write(uv_write_t* req, int status) {
+            (self(req)->*fn)(req, status); }
+        static void on_write(uv_write_t* req, int status) {
+            on_write<&self_t::on_write>(req, status); }
+    };
+
+    template <typename self_t>
     struct req_events_t : req_events_std_t< self_t > {
         typedef req_events_obj_t< self_t > ex;
     };

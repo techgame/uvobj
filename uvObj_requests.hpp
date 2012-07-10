@@ -15,26 +15,25 @@
 namespace uvObj {
     template <typename uv_t, typename uv_handle_t>
     struct ReqRef_t : Ref_t< uv_t > {
-        ReqRef_t(uv_handle_t* handle_p, bool delSelf=false)
-         : _handle(handle_p), _delSelf(delSelf) {}
+        ReqRef_t(uv_handle_t* handle_p, bool finalizeSelf=false)
+         : _handle(handle_p), _finalizeSelf(finalizeSelf) {}
         virtual ~ReqRef_t() {}
         virtual void finalizeRequest() {
             _handle = NULL;
-            if (_delSelf) delete this; }
+            if (_finalizeSelf) delete this; }
         inline bool isValid() { return !!_handle; }
         inline bool assertValid() { assert(isValid()); return true; }
         inline bool uvReqRes(int res) { return uvResult(res, _handle); }
 
         uv_handle_t* _handle;
-        bool _delSelf;
+        bool _finalizeSelf;
     };
 
     struct TCPConnectOp : ReqRef_t< uv_connect_t, uv_tcp_t > {
         typedef ReqRef_t< uv_connect_t, uv_tcp_t > Base_t;
-        typedef uvObj::req_events_t<TCPConnectOp> evt;
 
-        TCPConnectOp(uv_tcp_t* handle, bool delSelf=false)
-         : Base_t(handle, delSelf) { bind(blackhole()); }
+        TCPConnectOp(uv_tcp_t* handle, bool finalizeSelf=false)
+         : Base_t(handle, finalizeSelf) { bind(blackhole()); }
 
         TCPConnectOp* bind(void* self, uv_connect_cb cb) {
             Base_t::setCallback(self, cb); return this; }
@@ -57,10 +56,9 @@ namespace uvObj {
 
     struct PipeConnect : ReqRef_t< uv_connect_t, uv_pipe_t > {
         typedef ReqRef_t< uv_connect_t, uv_pipe_t > Base_t;
-        typedef uvObj::req_events_t<PipeConnect> evt;
 
-        PipeConnect(uv_pipe_t* handle, bool delSelf=false)
-         : Base_t(handle, delSelf) { bind(blackhole()); }
+        PipeConnect(uv_pipe_t* handle, bool finalizeSelf=false)
+         : Base_t(handle, finalizeSelf) { bind(blackhole()); }
 
         PipeConnect* bind(void* self, uv_connect_cb cb) {
             Base_t::setCallback(self, cb); return this; }
@@ -77,10 +75,9 @@ namespace uvObj {
 
     struct ShutdownOp : ReqRef_t< uv_shutdown_t, uv_stream_t > {
         typedef ReqRef_t< uv_shutdown_t, uv_stream_t > Base_t;
-        typedef uvObj::req_events_t<ShutdownOp> evt;
 
-        ShutdownOp(uv_stream_t* handle, bool delSelf=false)
-         : Base_t(handle, delSelf) { bind(blackhole()); }
+        ShutdownOp(uv_stream_t* handle, bool finalizeSelf=false)
+         : Base_t(handle, finalizeSelf) { bind(blackhole()); }
 
         ShutdownOp* bind(void* self, uv_shutdown_cb cb) {
             Base_t::setCallback(self, cb); return this; }
@@ -95,65 +92,145 @@ namespace uvObj {
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-    struct UDPSend : ReqRef_t< uv_udp_send_t, uv_udp_t > {
-        typedef ReqRef_t< uv_udp_send_t, uv_udp_t > Base_t;
-        typedef uvObj::req_events_t<UDPSend> evt;
+    struct BufferManager {
+        typedef req_events_proxy_t< BufferManager > evt;
+        typedef std::vector<uv_buf_t> vec;
 
-        UDPSend(uv_udp_t* handle, bool delSelf=false)
-         : Base_t(handle, delSelf) { bind(blackhole()); }
+        BufferManager() : data(0), cb_release(NULL) {cb.cb=NULL;}
 
-        UDPSend* bind(void* self, uv_udp_send_cb cb) {
-            Base_t::setCallback(self, cb); return this; }
-        template <typename T>
-        UDPSend* bind(T* self) {
-            return bind(self, T::evt::on_udp_send); }
+        uv_buf_release_cb cb_release;
+        vec bufs;
 
-        std::vector<uv_buf_t> bufs;
-        UDPSend* push(uv_buf_t buf) { bufs.push_back(buf); return this; }
-        UDPSend* push(const char* buf) { return push(buf, ::strlen(buf)); }
-        UDPSend* push(const char* buf, unsigned int len) {
-            bufs.push_back(uv_buf_init(const_cast<char*>(buf), len)); return this; }
+        uv_buf_t* ptr() { return &bufs[0]; }
+        unsigned int size() { return bufs.size(); }
 
-        void send(const char* ip, int port) { send(IP::addr(ip, port)); }
-        void send(const struct sockaddr_in& addr) {
-            Base_t::uvReqRes( uv_udp_send(*this, _handle, &bufs[0], bufs.size(), addr, Base_t::uv->cb) );
-            finalizeRequest(); }
+        void push(uv_buf_t buf) { bufs.push_back(buf); }
+        void push(const char* buf) { push(buf, ::strlen(buf)); }
+        void push_z(const char* buf) { push(buf, ::strlen(buf)+1); }
+        void push(const char* buf, unsigned int len) {
+            bufs.push_back(uv_buf_init(const_cast<char*>(buf), len)); }
+        void bindCleanup(uv_buf_release_cb cb) {
+            cb_release = cb; }
+        void bindCleanup(bool useFree) {
+            bindCleanup(useFree ? uvObj::buf_free : NULL); }
 
-        void send6(const char* ip, int port) { send6(IP::addr6(ip, port)); }
-        void send6(const struct sockaddr_in6& addr) {
-            Base_t::uvReqRes( uv_udp_send6(*this, _handle, &bufs[0], bufs.size(), addr, Base_t::uv->cb) );
-            finalizeRequest(); }
+        void finalize() {
+            if (cb_release) {
+                vec::iterator iter=bufs.begin(), end=bufs.end();
+                for(;iter!=end;++iter) cb_release(*iter);
+            }
+            bufs.clear();
+            delete this; }
+
+        /* Event proxying */
+        void bind(void* self, uv_udp_send_cb send) {
+            data = self; cb.send = send; }
+        void bind(void* self, uv_write_cb write) {
+            data = self; cb.write = write; }
+        void on_udp_send(uv_udp_send_t* req, int status) {
+            if (cb.send) {
+                req->data = data; req->cb = cb.send;
+                cb.send(req, status);
+            } finalize(); }
+        void on_write(uv_write_t* req, int status) {
+            if (cb.write) {
+                req->data = data; req->cb = cb.write;
+                cb.write(req, status);
+            } finalize(); }
+
+    protected:
+        void* data;
+        union { void* cb; uv_udp_send_cb send; uv_write_cb write; } cb;
     };
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-    struct StreamWrite : ReqRef_t< uv_write_t, uv_stream_t > {
-        typedef ReqRef_t< uv_write_t, uv_stream_t > Base_t;
-        typedef uvObj::req_events_t<StreamWrite> evt;
+    template <typename BufferMgr_t>
+    struct UDPSend_t : ReqRef_t< uv_udp_send_t, uv_udp_t > {
+        typedef ReqRef_t< uv_udp_send_t, uv_udp_t > Base_t;
 
-        StreamWrite(uv_stream_t* handle, bool delSelf=false)
-         : Base_t(handle, delSelf) { bind(blackhole()); }
+        UDPSend_t(uv_udp_t* handle, bool finalizeSelf=false)
+         : Base_t(handle, finalizeSelf), mgr(new BufferMgr_t())
+        { Base_t::setCallback<uv_udp_send_cb>(mgr, &BufferMgr_t::evt::on_udp_send); }
+        ~UDPSend_t() { delete mgr; }
 
-        StreamWrite* bind(void* self, uv_write_cb cb) {
-            Base_t::setCallback(self, cb); return this; }
+        UDPSend_t* bind(void* self, uv_udp_send_cb cb) {
+            if (mgr) mgr->bind(self, cb); return this; }
         template <typename T>
-        StreamWrite* bind(T* self) {
-            return bind(self, T::evt::on_write); }
+        UDPSend_t* bind(T* self) {
+            return bind(self, T::evt::on_udp_send); }
 
-        std::vector<uv_buf_t> bufs;
-        StreamWrite* push(uv_buf_t buf) { bufs.push_back(buf); return this; }
-        StreamWrite* push(const char* buf) { return push(buf, ::strlen(buf)); }
-        StreamWrite* push(const char* buf, unsigned int len) {
-            bufs.push_back(uv_buf_init(const_cast<char*>(buf), len)); return this; }
+        BufferMgr_t* mgr;
+        UDPSend_t* push(uv_buf_t buf) {
+            if (mgr) mgr->push(buf); return this; }
+        UDPSend_t* push(const char* buf) {
+            if (mgr) mgr->push(buf); return this; }
+        UDPSend_t* push_z(const char* buf) {
+            if (mgr) mgr->push_z(buf); return this; }
+        UDPSend_t* push(const char* buf, unsigned int len) {
+            if (mgr) mgr->push(buf, len); return this; }
+        template <typename Fn>
+        UDPSend_t* bindCleanup(Fn fn) {
+            if (mgr) mgr->bindCleanup(fn); return this; }
 
-        void write() {
-            Base_t::uvReqRes( uv_write(*this, _handle, &bufs[0], bufs.size(), Base_t::uv->cb) );
+        void send(const char* ip, int port) { send(IP::addr(ip, port)); }
+        void send(const struct sockaddr_in& addr) {
+            if (!mgr) return;
+            Base_t::uvReqRes( uv_udp_send(*this, _handle, mgr->ptr(), mgr->size(), addr, Base_t::uv->cb) );
+            mgr = NULL; // allow mgr to look after itself now
             finalizeRequest(); }
-        void write(uv_stream_t* send_handle) { write2(send_handle); }
-        void write2(uv_stream_t* send_handle) {
-            Base_t::uvReqRes( uv_write2(*this, _handle, &bufs[0], bufs.size(), send_handle, Base_t::uv->cb) );
+
+        void send6(const char* ip, int port) { send6(IP::addr6(ip, port)); }
+        void send6(const struct sockaddr_in6& addr) {
+            if (!mgr) return;
+            Base_t::uvReqRes( uv_udp_send6(*this, _handle, mgr->ptr(), mgr->size(), addr, Base_t::uv->cb) );
+            mgr = NULL; // allow mgr to look after itself now
             finalizeRequest(); }
     };
+    typedef UDPSend_t< BufferManager > UDPSend;
+
+    /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+
+    template <typename BufferMgr_t>
+    struct StreamWrite_t : ReqRef_t< uv_write_t, uv_stream_t > {
+        typedef ReqRef_t< uv_write_t, uv_stream_t > Base_t;
+
+        StreamWrite_t(uv_stream_t* handle, bool finalizeSelf=false)
+         : Base_t(handle, finalizeSelf), mgr(new BufferMgr_t())
+        { Base_t::setCallback<uv_write_cb>(mgr, &BufferMgr_t::evt::on_write); }
+        ~StreamWrite_t() { delete mgr; }
+
+        StreamWrite_t* bind(void* self, uv_write_cb cb) {
+            if (mgr) mgr->bind(self, cb); return this; }
+        template <typename T>
+        StreamWrite_t* bind(T* self) {
+            return bind(self, T::evt::on_write); }
+
+        BufferMgr_t* mgr;
+        StreamWrite_t* push(uv_buf_t buf) {
+            if (mgr) mgr->push(buf); return this; }
+        StreamWrite_t* push(const char* buf) {
+            if (mgr) mgr->push(buf); return this; }
+        StreamWrite_t* push_z(const char* buf) {
+            if (mgr) mgr->push_z(buf); return this; }
+        StreamWrite_t* push(const char* buf, unsigned int len) {
+            if (mgr) mgr->push(buf, len); return this; }
+        template <typename Fn>
+        StreamWrite_t* bindCleanup(Fn fn) {
+            if (mgr) mgr->bindCleanup(fn); return this; }
+
+        void write() {
+            if (!mgr) return;
+            Base_t::uvReqRes( uv_write(*this, _handle, mgr->ptr(), mgr->size(), Base_t::uv->cb) );
+            mgr = NULL; // allow mgr to look after itself now
+            finalizeRequest(); }
+        void write2(uv_stream_t* send_handle) {
+            if (!mgr) return;
+            Base_t::uvReqRes( uv_write2(*this, _handle, mgr->ptr(), mgr->size(), send_handle, Base_t::uv->cb) );
+            mgr = NULL; // allow mgr to look after itself now
+            finalizeRequest(); }
+    };
+    typedef StreamWrite_t< BufferManager > StreamWrite;
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
