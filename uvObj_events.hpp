@@ -17,7 +17,7 @@ namespace uvObj {
     template <typename self_t>
     struct req_events_obj_t {
         template <typename uv_t>
-        inline static self_t* self(uv_t* ref) {
+        static self_t* self(uv_t* ref) {
             return reinterpret_cast<self_t*>(ref->data); }
 
         // uv_fs_cb
@@ -73,7 +73,7 @@ namespace uvObj {
     template <typename self_t>
     struct req_events_std_t {
         template <typename uv_t>
-        inline static self_t* self(uv_t* ref) {
+        static self_t* self(uv_t* ref) {
             return reinterpret_cast<self_t*>(ref->data); }
 
         // uv_fs_cb
@@ -129,7 +129,7 @@ namespace uvObj {
     template <typename self_t>
     struct req_events_proxy_t {
         template <typename uv_t>
-        inline static self_t* self(uv_t* ref) {
+        static self_t* self(uv_t* ref) {
             return reinterpret_cast<self_t*>(ref->data); }
 
         // uv_udp_send_cb
@@ -156,7 +156,7 @@ namespace uvObj {
     template <typename self_t, typename uvobj_t_>
     struct events_obj_t : req_events_obj_t< self_t > {
         typedef uvobj_t_ uvobj_t;
-        inline static self_t* self(uvobj_t& obj) { return obj.template data<self_t*>(); }
+        static self_t* self(uvobj_t& obj) { return obj.template data<self_t*>(); }
 
         // uv_close_cb
         template < void (self_t::*fn)(uvobj_t& obj) >
@@ -271,7 +271,7 @@ namespace uvObj {
     template <typename self_t>
     struct events_std_t : req_events_std_t< self_t > {
         template <typename uv_t>
-        inline static self_t* self(uv_t* ref) {
+        static self_t* self(uv_t* ref) {
             return reinterpret_cast<self_t*>(ref->data); }
 
         // uv_close_cb

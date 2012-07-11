@@ -65,29 +65,29 @@ namespace uvObj {
         Ref_t() : uv(new uv_t) { ::memset(uv, 0, sizeof(uv_t)); }
         explicit Ref_t(ref_mode_t m, uv_t* ref) : uv(ref) {}
 
-        inline operator uv_t* () { return uv; }
+        operator uv_t* () { return uv; }
 
         void destroy() { delete uv; uv = NULL; }
 
-        inline uv_loop_t* loop() const { return uv->loop; }
+        uv_loop_t* loop() const { return uv->loop; }
         uv_err_t last_error() { return uv_last_error(loop()); }
-        inline bool uvRes(int res) const { return uvResult(res, loop()); }
-        inline bool uvRes(int res, int ignore) const {
+        bool _uvRes(int res) const { return uvResult(res, loop()); }
+        bool _uvRes(int res, int ignore) const {
             if (res == ignore) return false;
             return uvResult(res, loop()); }
 
         template <typename data_t>
         inline data_t data() {
             return reinterpret_cast<data_t>(uv ? uv->data : NULL); }
-        inline void setData(void* data) {
+        void setData(void* data) {
             if (uv) uv->data = data; }
         template <typename Fn>
-        inline void setCallback(void* data, Fn cb) {
+        void setCallback(void* data, Fn cb) {
             if (!uv) return;
             uv->data = data;
             uv->cb = cb; }
         template <typename data_t>
-        inline void delData() {
+        void delData() {
             if (!uv) return;
             delete reinterpret_cast<data_t>(uv->data);
             uv->data = NULL; }
@@ -118,7 +118,7 @@ namespace uvObj {
             char* buf = (char*)::malloc(len);
             buf[len-1] = 0;
             return buf_init(buf, len); }
-        inline static uv_buf_t buf_init(char* base, unsigned int len) {
+        static uv_buf_t buf_init(char* base, unsigned int len) {
             return uv_buf_init(base, len); }
         static void buf_free(uv_buf_t& buf) {
             uvObj::buf_free(buf); }

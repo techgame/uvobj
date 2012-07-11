@@ -28,7 +28,7 @@ namespace uvObj {
             if (_ownsLoop) uv_loop_delete(_loop);
             _loop = NULL; }
 
-        inline operator uv_loop_t* () { return _loop; }
+        operator uv_loop_t* () { return _loop; }
 
         uv_err_t last_error() { return uv_last_error(_loop); }
         const char* last_strerror() { return uv_strerror(last_error()); }

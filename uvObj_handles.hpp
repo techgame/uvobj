@@ -18,18 +18,18 @@ namespace uvObj {
 
         void init(int fd) { init(NULL, fd); }
         void init(uv_loop_t* loop, int fd) {
-            Base_t::uvRes( uv_poll_init(_as_loop(loop), *this, fd) ); }
+            Base_t::_uvRes( uv_poll_init(_as_loop(loop), *this, fd) ); }
         void init_socket(uv_os_sock_t socket) {
             init_socket(NULL, socket); }
         void init_socket(uv_loop_t* loop, uv_os_sock_t socket) {
-            Base_t::uvRes( uv_poll_init_socket(_as_loop(loop), *this, socket) ); }
+            Base_t::_uvRes( uv_poll_init_socket(_as_loop(loop), *this, socket) ); }
         void start(int events, uv_poll_cb cb) {
-            Base_t::uvRes( uv_poll_start(*this, events, cb) ); }
+            Base_t::_uvRes( uv_poll_start(*this, events, cb) ); }
         template <typename T>
         void start(T* self, int events) {
             Base_t::setData(self); start(events, T::evt::on_poll); }
         void stop() {
-            Base_t::uvRes( uv_poll_stop(*this) ); }
+            Base_t::_uvRes( uv_poll_stop(*this) ); }
     };
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -39,9 +39,9 @@ namespace uvObj {
         void spawn(const uv_process_options_t& options) {
             spawn(NULL, options); }
         void spawn(uv_loop_t* loop, const uv_process_options_t& options) {
-            Base_t::uvRes( uv_spawn(_as_loop(loop), *this, options) ); }
+            Base_t::_uvRes( uv_spawn(_as_loop(loop), *this, options) ); }
         void kill(int signum) {
-            Base_t::uvRes( uv_process_kill(*this, signum) ); }
+            Base_t::_uvRes( uv_process_kill(*this, signum) ); }
         static void kill(int pid, int signum) {
             uvResult(uv_kill(pid, signum)); }
     };
@@ -55,14 +55,14 @@ namespace uvObj {
 
         void init() { init(NULL); }
         void init(uv_loop_t* loop) {
-            Base_t::uvRes( uv_prepare_init(_as_loop(loop), *this) ); }
+            Base_t::_uvRes( uv_prepare_init(_as_loop(loop), *this) ); }
         void start(uv_prepare_cb cb) {
-            Base_t::uvRes( uv_prepare_start(*this, cb) ); }
+            Base_t::_uvRes( uv_prepare_start(*this, cb) ); }
         template <typename T>
         void start(T* self) {
             Base_t::setData(self); start(T::evt::on_prepare); }
         void stop() {
-            Base_t::uvRes( uv_prepare_stop(*this) ); }
+            Base_t::_uvRes( uv_prepare_stop(*this) ); }
     };
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -74,14 +74,14 @@ namespace uvObj {
 
         void init() { init(NULL); }
         void init(uv_loop_t* loop) {
-            Base_t::uvRes( uv_check_init(_as_loop(loop), *this) ); }
+            Base_t::_uvRes( uv_check_init(_as_loop(loop), *this) ); }
         void start(uv_check_cb cb) {
-            Base_t::uvRes( uv_check_start(*this, cb) ); }
+            Base_t::_uvRes( uv_check_start(*this, cb) ); }
         template <typename T>
         void start(T* self) {
             Base_t::setData(self); start(T::evt::on_check); }
         void stop() {
-            Base_t::uvRes( uv_check_stop(*this) ); }
+            Base_t::_uvRes( uv_check_stop(*this) ); }
     };
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -93,14 +93,14 @@ namespace uvObj {
 
         void init() { init(NULL); }
         void init(uv_loop_t* loop) {
-            Base_t::uvRes( uv_idle_init(_as_loop(loop), *this) ); }
+            Base_t::_uvRes( uv_idle_init(_as_loop(loop), *this) ); }
         void start(uv_idle_cb cb) {
-            Base_t::uvRes( uv_idle_start(*this, cb) ); }
+            Base_t::_uvRes( uv_idle_start(*this, cb) ); }
         template <typename T>
         void start(T* self) {
             Base_t::setData(self); start(T::evt::on_idle); }
         void stop() {
-            Base_t::uvRes( uv_idle_stop(*this) ); }
+            Base_t::_uvRes( uv_idle_stop(*this) ); }
     };
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -115,12 +115,12 @@ namespace uvObj {
 
         void init(uv_async_cb cb) { init(NULL, cb); }
         void init(uv_loop_t* loop, uv_async_cb cb) {
-            Base_t::uvRes( uv_async_init(_as_loop(loop), *this, cb) ); }
+            Base_t::_uvRes( uv_async_init(_as_loop(loop), *this, cb) ); }
         template <typename T>
         void init(T* self, uv_loop_t* loop=NULL) {
             Base_t::setData(self); init(loop, T::evt::on_async); }
         void send() {
-            Base_t::uvRes( uv_async_send(*this) ); }
+            Base_t::_uvRes( uv_async_send(*this) ); }
     };
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -132,16 +132,16 @@ namespace uvObj {
 
         void init() { init(NULL); }
         void init(uv_loop_t* loop) {
-            Base_t::uvRes( uv_timer_init(_as_loop(loop), *this) ); }
+            Base_t::_uvRes( uv_timer_init(_as_loop(loop), *this) ); }
         void start(uv_timer_cb cb, int64_t timeout, int64_t repeat=0) {
-            Base_t::uvRes( uv_timer_start(*this, cb, timeout, repeat) ); }
+            Base_t::_uvRes( uv_timer_start(*this, cb, timeout, repeat) ); }
         template <typename T>
         void start(T* self, int64_t timeout, int64_t repeat=0) {
             Base_t::setData(self); start(T::evt::on_timer, timeout, repeat); }
         void stop() {
-            Base_t::uvRes( uv_timer_stop(*this) ); }
+            Base_t::_uvRes( uv_timer_stop(*this) ); }
         void again() {
-            Base_t::uvRes( uv_timer_again(*this) ); }
+            Base_t::_uvRes( uv_timer_again(*this) ); }
         int64_t get_repeat() {
             return uv_timer_get_repeat(*this); }
         void set_repeat(int64_t repeat) {

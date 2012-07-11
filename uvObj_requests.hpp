@@ -21,9 +21,8 @@ namespace uvObj {
         virtual void finalizeRequest() {
             _handle = NULL;
             if (_finalizeSelf) delete this; }
-        inline bool isValid() { return !!_handle; }
-        inline bool assertValid() { assert(isValid()); return true; }
-        inline bool uvReqRes(int res) { return uvResult(res, _handle); }
+        bool isValid() { return !!_handle; }
+        bool _uvReqRes(int res) { return uvResult(res, _handle); }
 
         uv_handle_t* _handle;
         bool _finalizeSelf;
@@ -44,13 +43,13 @@ namespace uvObj {
         void connect(const char* ip, int port) {
             connect(IP::addr(ip, port)); }
         void connect(const struct sockaddr_in& addr) {
-            Base_t::uvReqRes( uv_tcp_connect(*this, _handle, addr, Base_t::uv->cb) );
+            Base_t::_uvReqRes( uv_tcp_connect(*this, _handle, addr, Base_t::uv->cb) );
             finalizeRequest(); }
 
         void connect6(const char* ip, int port) {
             connect6(IP::addr6(ip, port)); }
         void connect6(const struct sockaddr_in6& addr) {
-            Base_t::uvReqRes( uv_tcp_connect6(*this, _handle, addr, Base_t::uv->cb) );
+            Base_t::_uvReqRes( uv_tcp_connect6(*this, _handle, addr, Base_t::uv->cb) );
             finalizeRequest(); }
     };
 
@@ -86,7 +85,7 @@ namespace uvObj {
             return bind(self, T::evt::on_shutdown); }
 
         void shutdown() {
-            Base_t::uvReqRes( uv_shutdown(*this, _handle, Base_t::uv->cb) );
+            Base_t::_uvReqRes( uv_shutdown(*this, _handle, Base_t::uv->cb) );
             finalizeRequest(); }
     };
 
@@ -176,14 +175,14 @@ namespace uvObj {
         void send(const char* ip, int port) { send(IP::addr(ip, port)); }
         void send(const struct sockaddr_in& addr) {
             if (!mgr) return;
-            Base_t::uvReqRes( uv_udp_send(*this, _handle, mgr->ptr(), mgr->size(), addr, Base_t::uv->cb) );
+            Base_t::_uvReqRes( uv_udp_send(*this, _handle, mgr->ptr(), mgr->size(), addr, Base_t::uv->cb) );
             mgr = NULL; // allow mgr to look after itself now
             finalizeRequest(); }
 
         void send6(const char* ip, int port) { send6(IP::addr6(ip, port)); }
         void send6(const struct sockaddr_in6& addr) {
             if (!mgr) return;
-            Base_t::uvReqRes( uv_udp_send6(*this, _handle, mgr->ptr(), mgr->size(), addr, Base_t::uv->cb) );
+            Base_t::_uvReqRes( uv_udp_send6(*this, _handle, mgr->ptr(), mgr->size(), addr, Base_t::uv->cb) );
             mgr = NULL; // allow mgr to look after itself now
             finalizeRequest(); }
     };
@@ -221,12 +220,12 @@ namespace uvObj {
 
         void write() {
             if (!mgr) return;
-            Base_t::uvReqRes( uv_write(*this, _handle, mgr->ptr(), mgr->size(), Base_t::uv->cb) );
+            Base_t::_uvReqRes( uv_write(*this, _handle, mgr->ptr(), mgr->size(), Base_t::uv->cb) );
             mgr = NULL; // allow mgr to look after itself now
             finalizeRequest(); }
         void write2(uv_stream_t* send_handle) {
             if (!mgr) return;
-            Base_t::uvReqRes( uv_write2(*this, _handle, mgr->ptr(), mgr->size(), send_handle, Base_t::uv->cb) );
+            Base_t::_uvReqRes( uv_write2(*this, _handle, mgr->ptr(), mgr->size(), send_handle, Base_t::uv->cb) );
             mgr = NULL; // allow mgr to look after itself now
             finalizeRequest(); }
     };
@@ -243,7 +242,7 @@ namespace uvObj {
         void queue(uv_work_cb work_cb, uv_after_work_cb after_cb) {
             queue(NULL, work_cb, after_cb); }
         void queue(uv_loop_t* loop, uv_work_cb work_cb, uv_after_work_cb after_cb) {
-            Base_t::uvRes( uv_queue_work(_as_loop(loop), *this, work_cb, after_cb) ); }
+            Base_t::_uvRes( uv_queue_work(_as_loop(loop), *this, work_cb, after_cb) ); }
         template <typename T>
         void queue(T* self, uv_loop_t* loop=NULL) {
             Base_t::setData(self); queue(loop, T::evt::on_work, T::evt::on_after_work); }
@@ -263,23 +262,23 @@ namespace uvObj {
 
         /* a little private api inconsistency */
         #ifdef _WIN32
-        inline uv_getaddrinfo_cb callback() {
+        uv_getaddrinfo_cb callback() {
             return Base_t::uv->getaddrinfo_cb; }
-        inline void setCallback(void* data, uv_getaddrinfo_cb cb) {
+        void setCallback(void* data, uv_getaddrinfo_cb cb) {
             if (!Base_t::uv) return;
             Base_t::uv->data = data;
             Base_t::uv->getaddrinfo_cb = cb; }
         #else
-        inline uv_getaddrinfo_cb callback() {
+        uv_getaddrinfo_cb callback() {
             return uv->cb; }
-        inline void setCallback(void* data, uv_getaddrinfo_cb cb) {
+        void setCallback(void* data, uv_getaddrinfo_cb cb) {
             Base_t::setCallback(data, cb); }
         #endif
 
         void lookup(const char* node, const char* service, const struct addrinfo* hints=NULL) {
             lookup(NULL, node, service, hints); }
         void lookup(uv_loop_t* loop, const char* node, const char* service, const struct addrinfo* hints=NULL) {
-            Base_t::uvRes( uv_getaddrinfo(_as_loop(loop), *this, callback(), node, service, hints) ); }
+            Base_t::_uvRes( uv_getaddrinfo(_as_loop(loop), *this, callback(), node, service, hints) ); }
 
         static void freeaddrinfo(struct addrinfo* ai) { uv_freeaddrinfo(ai); }
     };
