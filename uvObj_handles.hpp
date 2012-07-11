@@ -133,10 +133,10 @@ namespace uvObj {
         void init() { init(NULL); }
         void init(uv_loop_t* loop) {
             Base_t::uvRes( uv_timer_init(_as_loop(loop), *this) ); }
-        void start(uv_timer_cb cb, int64_t timeout, int64_t repeat) {
+        void start(uv_timer_cb cb, int64_t timeout, int64_t repeat=0) {
             Base_t::uvRes( uv_timer_start(*this, cb, timeout, repeat) ); }
         template <typename T>
-        void start(T* self, int64_t timeout, int64_t repeat) {
+        void start(T* self, int64_t timeout, int64_t repeat=0) {
             Base_t::setData(self); start(T::evt::on_timer, timeout, repeat); }
         void stop() {
             Base_t::uvRes( uv_timer_stop(*this) ); }

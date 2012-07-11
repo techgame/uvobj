@@ -102,7 +102,7 @@ namespace uvObj {
         void accept(uv_stream_t* client) {
             Base_t::uvRes( uv_accept(*this, client) ); }
 
-        bool wasEOF() { return UV_EOF == Base_t::last_error(); }
+        bool wasEOF() { return Base_t::last_error().code == UV_EOF; }
 
         bool is_readable() { return uv_is_readable(*this) != 0; }
         void read_start(uv_alloc_cb alloc_cb, uv_read_cb read_cb) {

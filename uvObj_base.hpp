@@ -70,6 +70,7 @@ namespace uvObj {
         void destroy() { delete uv; uv = NULL; }
 
         inline uv_loop_t* loop() const { return uv->loop; }
+        uv_err_t last_error() { return uv_last_error(loop()); }
         inline bool uvRes(int res) const { return uvResult(res, loop()); }
         inline bool uvRes(int res, int ignore) const {
             if (res == ignore) return false;
@@ -126,16 +127,18 @@ namespace uvObj {
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
     struct Mutex : Ref_t< uv_mutex_t > {
+        typedef Ref_t< uv_mutex_t > Base_t;
         void init() { uvResult( uv_mutex_init(*this) ); }
-        void destroy() { uv_mutex_destroy(*this); }
+        void destroy() { uv_mutex_destroy(*this); Base_t::destroy(); }
         void lock() { uv_mutex_lock(*this); }
         void trylock() { uvResult( uv_mutex_trylock(*this) ); }
         void unlock() { uv_mutex_unlock(*this); }
     };
 
     struct RWLock : Ref_t< uv_rwlock_t > {
+        typedef Ref_t< uv_rwlock_t > Base_t;
         void init() { uvResult( uv_rwlock_init(*this) ); }
-        void destroy() { uv_rwlock_destroy(*this); }
+        void destroy() { uv_rwlock_destroy(*this); Base_t::destroy(); }
 
         void rdlock() { uv_rwlock_rdlock(*this); }
         void tryrdlock() { uvResult( uv_rwlock_tryrdlock(*this) ); }
@@ -147,8 +150,9 @@ namespace uvObj {
     };
 
     struct Semaphore : Ref_t< uv_sem_t > {
+        typedef Ref_t< uv_sem_t > Base_t;
         void init(unsigned int value) { uvResult( uv_sem_init(*this, value) ); }
-        void destroy() { uv_sem_destroy(*this); }
+        void destroy() { uv_sem_destroy(*this); Base_t::destroy(); }
         void post() { uv_sem_post(*this); }
         void wait() { uv_sem_wait(*this); }
         void trywait() { uvResult( uv_sem_trywait(*this) ); }
