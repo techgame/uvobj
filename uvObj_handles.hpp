@@ -25,9 +25,8 @@ namespace uvObj {
             Base_t::_uvRes( uv_poll_init_socket(_as_loop(loop), *this, socket) ); }
         void start(int events, uv_poll_cb cb) {
             Base_t::_uvRes( uv_poll_start(*this, events, cb) ); }
-        template <typename T>
-        void start(T* self, int events) {
-            Base_t::setData(self); start(events, T::evt::on_poll); }
+        void start(const BoundEvt<uv_poll_cb>& evt, int events) {
+            Base_t::setData(evt.tgt); start(events, evt.cb); }
         void stop() {
             Base_t::_uvRes( uv_poll_stop(*this) ); }
     };
@@ -58,9 +57,8 @@ namespace uvObj {
             Base_t::_uvRes( uv_prepare_init(_as_loop(loop), *this) ); }
         void start(uv_prepare_cb cb) {
             Base_t::_uvRes( uv_prepare_start(*this, cb) ); }
-        template <typename T>
-        void start(T* self) {
-            Base_t::setData(self); start(T::evt::on_prepare); }
+        void start(const BoundEvt<uv_prepare_cb>& evt) {
+            Base_t::setData(evt.tgt); start(evt.cb); }
         void stop() {
             Base_t::_uvRes( uv_prepare_stop(*this) ); }
     };
@@ -77,9 +75,8 @@ namespace uvObj {
             Base_t::_uvRes( uv_check_init(_as_loop(loop), *this) ); }
         void start(uv_check_cb cb) {
             Base_t::_uvRes( uv_check_start(*this, cb) ); }
-        template <typename T>
-        void start(T* self) {
-            Base_t::setData(self); start(T::evt::on_check); }
+        void start(const BoundEvt<uv_check_cb>& evt) {
+            Base_t::setData(evt.tgt); start(evt.cb); }
         void stop() {
             Base_t::_uvRes( uv_check_stop(*this) ); }
     };
@@ -96,9 +93,8 @@ namespace uvObj {
             Base_t::_uvRes( uv_idle_init(_as_loop(loop), *this) ); }
         void start(uv_idle_cb cb) {
             Base_t::_uvRes( uv_idle_start(*this, cb) ); }
-        template <typename T>
-        void start(T* self) {
-            Base_t::setData(self); start(T::evt::on_idle); }
+        void start(const BoundEvt<uv_idle_cb>& evt) {
+            Base_t::setData(evt.tgt); start(evt.cb); }
         void stop() {
             Base_t::_uvRes( uv_idle_stop(*this) ); }
     };
@@ -109,16 +105,14 @@ namespace uvObj {
         typedef Handle_t< uv_async_t > Base_t;
         Async(uv_loop_t* loop, uv_async_cb cb) : Base_t() { init(loop, cb); }
         Async(uv_async_cb cb) : Base_t() { init(cb); }
-        template <typename T>
-        Async(T* self, uv_loop_t* loop=NULL) : Base_t() {
-            Base_t::setData(self); init(loop, T::evt::on_async); }
+        Async(const BoundEvt<uv_async_cb>& evt, uv_loop_t* loop=NULL) : Base_t() {
+            Base_t::setData(evt.tgt); init(loop, evt.cb); }
 
         void init(uv_async_cb cb) { init(NULL, cb); }
         void init(uv_loop_t* loop, uv_async_cb cb) {
             Base_t::_uvRes( uv_async_init(_as_loop(loop), *this, cb) ); }
-        template <typename T>
-        void init(T* self, uv_loop_t* loop=NULL) {
-            Base_t::setData(self); init(loop, T::evt::on_async); }
+        void init(const BoundEvt<uv_async_cb>& evt, uv_loop_t* loop=NULL) {
+            Base_t::setData(evt.tgt); init(loop, evt.cb); }
         void send() {
             Base_t::_uvRes( uv_async_send(*this) ); }
     };
@@ -135,9 +129,8 @@ namespace uvObj {
             Base_t::_uvRes( uv_timer_init(_as_loop(loop), *this) ); }
         void start(uv_timer_cb cb, int64_t timeout, int64_t repeat=0) {
             Base_t::_uvRes( uv_timer_start(*this, cb, timeout, repeat) ); }
-        template <typename T>
-        void start(T* self, int64_t timeout, int64_t repeat=0) {
-            Base_t::setData(self); start(T::evt::on_timer, timeout, repeat); }
+        void start(const BoundEvt<uv_timer_cb>& evt, int64_t timeout, int64_t repeat=0) {
+            Base_t::setData(evt.tgt); start(evt.cb, timeout, repeat); }
         void stop() {
             Base_t::_uvRes( uv_timer_stop(*this) ); }
         void again() {

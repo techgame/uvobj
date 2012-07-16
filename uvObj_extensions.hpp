@@ -130,12 +130,8 @@ namespace uvObj {
             opt.stdio_count = (int) v_stdio.size();
             opt.stdio = v_stdio.size() ? &v_stdio[0] : NULL;
             _uvRes( uv_spawn(_as_loop(loop), *this, opt) ); }
-        template <typename T>
-        void spawn(T* self, uv_loop_t* loop=NULL) {
-            Base_t::setData(self); spawn(loop, T::evt::on_exit); }
-        template <typename T>
-        void spawn(T* self, uv_exit_cb cb, uv_loop_t* loop=NULL) {
-            Base_t::setData(self); spawn(loop, cb); }
+        void spawn(const BoundEvt<uv_exit_cb>& evt, uv_loop_t* loop=NULL) {
+            Base_t::setData(evt.tgt); spawn(loop, evt.cb); }
 
         uv_process_options_t opt;
         std::vector<const char*> v_args;

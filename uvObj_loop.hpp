@@ -46,6 +46,8 @@ namespace uvObj {
 
         void walk(uv_walk_cb walk_cb, void* arg) {
             uv_walk(_loop, walk_cb, arg); }
+        void walk(const BoundEvt<uv_walk_cb>& evt) {
+            walk(evt.cb, evt.tgt); }
     };
 }
 

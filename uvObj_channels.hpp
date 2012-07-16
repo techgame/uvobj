@@ -53,9 +53,8 @@ namespace uvObj {
 
         void recv_start(uv_alloc_cb alloc_cb, uv_udp_recv_cb recv_cb) {
             Base_t::_uvRes( uv_udp_recv_start(*this, alloc_cb, recv_cb) ); }
-        template <typename T>
-        void recv_start(T* self) {
-            Base_t::setData(self); recv_start(T::evt::on_alloc, T::evt::on_recv); }
+        void recv_start(const BoundAllocEvt<uv_udp_recv_cb>& evt) {
+            Base_t::setData(evt.tgt); recv_start(evt.alloc, evt.cb); }
         void recv_stop() {
             Base_t::_uvRes( uv_udp_recv_stop(*this) ); }
 
@@ -83,11 +82,11 @@ namespace uvObj {
     struct Stream_t : Handle_t< uv_t > {
         typedef Handle_t< uv_t > Base_t;
 
-        explicit Stream_t(ref_mode_t m, uv_t* ref) : Base_t(m, ref) {}
-        explicit Stream_t(ref_mode_t m, uv_stream_t* ref)
-         : Base_t(m, reinterpret_cast<uv_t*>(ref)) {}
-        explicit Stream_t(ref_mode_t m, uv_handle_t* ref)
-         : Base_t(m, reinterpret_cast<uv_t*>(ref)) {}
+        explicit Stream_t(uv_t* ref) : Base_t(ref) {}
+        explicit Stream_t(uv_stream_t* ref)
+         : Base_t(reinterpret_cast<uv_t*>(ref)) {}
+        explicit Stream_t(uv_handle_t* ref)
+         : Base_t(reinterpret_cast<uv_t*>(ref)) {}
         Stream_t() : Base_t() {}
 
         inline uv_stream_t* asStream() {
@@ -96,9 +95,9 @@ namespace uvObj {
 
         void listen(int backlog, uv_connection_cb cb) {
             Base_t::_uvRes( uv_listen(*this, backlog, cb) ); }
-        template <typename T>
-        void listen(T* self, int backlog) {
-            Base_t::setData(self); listen(backlog, T::evt::on_connection); }
+        void listen(const BoundEvt<uv_connection_cb>& evt, int backlog) {
+            Base_t::setData(evt.tgt); listen(backlog, evt.cb); }
+
         void accept(uv_stream_t* client) {
             Base_t::_uvRes( uv_accept(*this, client) ); }
 
@@ -107,14 +106,12 @@ namespace uvObj {
         bool is_readable() { return uv_is_readable(*this) != 0; }
         void read_start(uv_alloc_cb alloc_cb, uv_read_cb read_cb) {
             Base_t::_uvRes( uv_read_start(*this, alloc_cb, read_cb) ); }
-        template <typename T>
-        void read_start(T* self) {
-            Base_t::setData(self); read_start(T::evt::on_alloc, T::evt::on_read); }
+        void read_start(const BoundAllocEvt<uv_read_cb>& evt) {
+            Base_t::setData(evt.tgt); read_start(evt.alloc, evt.cb); }
         void read2_start(uv_alloc_cb alloc_cb, uv_read2_cb read_cb) {
             Base_t::_uvRes( uv_read2_start(*this, alloc_cb, read_cb) ); }
-        template <typename T>
-        int read2_start(T* self) {
-            Base_t::setData(self); read2_start(T::evt::on_alloc, T::evt::on_read2); }
+        void read2_start(const BoundAllocEvt<uv_read2_cb>& evt) {
+            Base_t::setData(evt.tgt); read2_start(evt.alloc, evt.cb); }
         void read_stop() {
             Base_t::_uvRes( uv_read_stop(*this) ); }
 
@@ -141,8 +138,8 @@ namespace uvObj {
     struct TCP : Stream_t< uv_tcp_t > {
         typedef Stream_t< uv_tcp_t > Base_t;
 
-        explicit TCP(ref_mode_t m, uv_handle_t* ref) : Base_t(m, ref) { }
-        explicit TCP(ref_mode_t m, uv_stream_t* ref) : Base_t(m, ref) { }
+        explicit TCP(uv_handle_t* ref) : Base_t(ref) { }
+        explicit TCP(uv_stream_t* ref) : Base_t(ref) { }
         TCP(uv_loop_t* loop) : Base_t() { init(loop); }
         TCP() : Base_t() { init(); }
 
@@ -198,32 +195,10 @@ namespace uvObj {
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-    struct TTY : Stream_t< uv_tty_t > {
-        typedef Stream_t< uv_tty_t > Base_t;
-        explicit TTY(ref_mode_t m, uv_stream_t* ref) : Base_t(m, ref) { }
-        TTY(uv_loop_t* loop, uv_file fd, int readable) : Base_t()
-        { init(loop, fd, readable); }
-        TTY(uv_file fd, int readable) : Base_t()
-        { init(fd, readable); }
-
-        void init(uv_file fd, int readable) {
-            return init(NULL, fd, readable); }
-        void init(uv_loop_t* loop, uv_file fd, int readable) {
-            Base_t::_uvRes( uv_tty_init(_as_loop(loop), *this, fd, readable) ); }
-        void set_mode(int mode) {
-            Base_t::_uvRes( uv_tty_set_mode(*this, mode) ); }
-        void reset_mode() { uv_tty_reset_mode(); }
-        void get_winsize(int& width, int& height) {
-            Base_t::_uvRes( uv_tty_get_winsize(*this, &width, &height) ); }
-        static uv_handle_type guess_handle(uv_file file) {
-           return uv_guess_handle(file); }
-    };
-
-    /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-
     struct Pipe : Stream_t< uv_pipe_t > {
         typedef Stream_t< uv_pipe_t > Base_t;
-        explicit Pipe(ref_mode_t m, uv_stream_t* ref) : Base_t(m, ref) { }
+        explicit Pipe(uv_handle_t* ref) : Base_t(ref) { }
+        explicit Pipe(uv_stream_t* ref) : Base_t(ref) { }
         Pipe(uv_loop_t* loop, int ipc=0) : Base_t() { init(loop, ipc); }
         Pipe(int ipc=0) : Base_t() { init(ipc); }
 
@@ -242,5 +217,29 @@ namespace uvObj {
 
         void pending_instances(int count) {
             uv_pipe_pending_instances(*this, count); }
+    };
+
+    /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+
+    struct TTY : Stream_t< uv_tty_t > {
+        typedef Stream_t< uv_tty_t > Base_t;
+        explicit TTY(uv_handle_t* ref) : Base_t(ref) { }
+        explicit TTY(uv_stream_t* ref) : Base_t(ref) { }
+        TTY(uv_loop_t* loop, uv_file fd, int readable) : Base_t()
+        { init(loop, fd, readable); }
+        TTY(uv_file fd, int readable) : Base_t()
+        { init(fd, readable); }
+
+        void init(uv_file fd, int readable) {
+            return init(NULL, fd, readable); }
+        void init(uv_loop_t* loop, uv_file fd, int readable) {
+            Base_t::_uvRes( uv_tty_init(_as_loop(loop), *this, fd, readable) ); }
+        void set_mode(int mode) {
+            Base_t::_uvRes( uv_tty_set_mode(*this, mode) ); }
+        void reset_mode() { uv_tty_reset_mode(); }
+        void get_winsize(int& width, int& height) {
+            Base_t::_uvRes( uv_tty_get_winsize(*this, &width, &height) ); }
+        static uv_handle_type guess_handle(uv_file file) {
+           return uv_guess_handle(file); }
     };
 }

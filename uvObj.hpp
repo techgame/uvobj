@@ -9,6 +9,8 @@
 
 #pragma once
 #include "./uvObj_base.hpp"
+#include "./uvObj_events.hpp"
+#include "./uvObj_sinks.hpp"
 #include "./uvObj_loop.hpp"
 #include "./uvObj_handles.hpp"
 #include "./uvObj_requests.hpp"

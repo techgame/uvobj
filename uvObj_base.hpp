@@ -63,7 +63,7 @@ namespace uvObj {
         typedef uv_type uv_t;
 
         Ref_t() : uv(new uv_t) { ::memset(uv, 0, sizeof(uv_t)); }
-        explicit Ref_t(ref_mode_t m, uv_t* ref) : uv(ref) {}
+        explicit Ref_t(uv_t* ref) : uv(ref) {}
 
         operator uv_t* () { return uv; }
 
@@ -76,9 +76,9 @@ namespace uvObj {
             if (res == ignore) return false;
             return uvResult(res, loop()); }
 
+        inline void* data() { return uv ? uv->data : NULL; }
         template <typename data_t>
-        inline data_t data() {
-            return reinterpret_cast<data_t>(uv ? uv->data : NULL); }
+        inline data_t data() { return reinterpret_cast<data_t>(data()); }
         void setData(void* data) {
             if (uv) uv->data = data; }
         template <typename Fn>
@@ -86,6 +86,11 @@ namespace uvObj {
             if (!uv) return;
             uv->data = data;
             uv->cb = cb; }
+        template <typename BoundEvt>
+        void setCallback(const BoundEvt& evt) {
+            if (!uv) return;
+            uv->data = evt.tgt;
+            uv->cb = evt.cb; }
         template <typename data_t>
         void delData() {
             if (!uv) return;
@@ -99,7 +104,7 @@ namespace uvObj {
     struct Handle_t : Ref_t< uv_t > {
         typedef Ref_t< uv_t > Base_t;
         Handle_t() : Base_t() {}
-        explicit Handle_t(ref_mode_t m, uv_t* ref) : Base_t(m, ref) {}
+        explicit Handle_t(uv_t* ref) : Base_t(ref) {}
 
         inline uv_handle_t* asHandle() {
             return reinterpret_cast<uv_handle_t*>(Base_t::uv); }
@@ -111,8 +116,8 @@ namespace uvObj {
         bool is_active() { return uv_is_active(asHandle()); }
         bool is_closing() { return uv_is_closing(asHandle()); }
         void close(uv_close_cb cb) { uv_close(asHandle(), cb); }
-        template <typename T>
-        void close(T* self) { Base_t::setData(self); close(T::evt::on_close); }
+        void close(const BoundEvt<uv_close_cb>& evt) {
+            Base_t::setData(evt.tgt); close(evt.cb); }
 
         static uv_buf_t buf_create(unsigned int len) {
             char* buf = (char*)::malloc(len);

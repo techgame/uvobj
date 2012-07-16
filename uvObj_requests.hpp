@@ -36,9 +36,8 @@ namespace uvObj {
 
         TCPConnectOp* bind(void* self, uv_connect_cb cb) {
             Base_t::setCallback(self, cb); return this; }
-        template <typename T>
-        TCPConnectOp* bind(T* self) {
-            return bind(self, T::evt::on_connect); }
+        TCPConnectOp* bind(const BoundEvt<uv_connect_cb>& evt) {
+            return bind(evt.tgt, evt.cb); }
 
         void connect(const char* ip, int port) {
             connect(IP::addr(ip, port)); }
@@ -61,9 +60,8 @@ namespace uvObj {
 
         PipeConnect* bind(void* self, uv_connect_cb cb) {
             Base_t::setCallback(self, cb); return this; }
-        template <typename T>
-        PipeConnect* bind(T* self) {
-            return bind(self, T::evt::on_connect); }
+        PipeConnect* bind(const BoundEvt<uv_connect_cb>& evt) {
+            return bind(evt.tgt, evt.cb); }
 
         void connect(const char* name) {
             uv_pipe_connect(*this, _handle, name, Base_t::uv->cb);
@@ -80,9 +78,8 @@ namespace uvObj {
 
         ShutdownOp* bind(void* self, uv_shutdown_cb cb) {
             Base_t::setCallback(self, cb); return this; }
-        template <typename T>
-        ShutdownOp* bind(T* self) {
-            return bind(self, T::evt::on_shutdown); }
+        ShutdownOp* bind(const BoundEvt<uv_shutdown_cb>& evt) {
+            return bind(evt.tgt, evt.cb); }
 
         void shutdown() {
             Base_t::_uvReqRes( uv_shutdown(*this, _handle, Base_t::uv->cb) );
@@ -92,8 +89,8 @@ namespace uvObj {
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
     struct BufferManager {
-        typedef req_events_proxy_t< BufferManager > evt;
         typedef std::vector<uv_buf_t> vec;
+        typedef evt_t<BufferManager> evt;
 
         BufferManager() : data(0), cb_release(NULL) {cb.cb=NULL;}
 
@@ -126,16 +123,22 @@ namespace uvObj {
             data = self; cb.send = send; }
         void bind(void* self, uv_write_cb write) {
             data = self; cb.write = write; }
-        void on_udp_send(uv_udp_send_t* req, int status) {
+        bool on_udp_send(uv_udp_send_t* req, int status) {
             if (cb.send) {
                 req->data = data; req->cb = cb.send;
                 cb.send(req, status);
-            } finalize(); }
-        void on_write(uv_write_t* req, int status) {
+            }
+            finalize();
+            // only cleanup if cb.send was not called
+            return !cb.send; }
+        bool on_write(uv_write_t* req, int status) {
             if (cb.write) {
                 req->data = data; req->cb = cb.write;
                 cb.write(req, status);
-            } finalize(); }
+            }
+            finalize();
+            // only cleanup if cb.write was not called
+            return !cb.write; }
 
     protected:
         void* data;
@@ -150,14 +153,13 @@ namespace uvObj {
 
         UDPSend_t(uv_udp_t* handle, bool finalizeSelf=false)
          : Base_t(handle, finalizeSelf), mgr(new BufferMgr_t())
-        { Base_t::setCallback<uv_udp_send_cb>(mgr, &BufferMgr_t::evt::on_udp_send); }
+        { Base_t::setCallback(BufferMgr_t::evt::on_udp_send(mgr)); }
         ~UDPSend_t() { delete mgr; }
 
         UDPSend_t* bind(void* self, uv_udp_send_cb cb) {
             if (mgr) mgr->bind(self, cb); return this; }
-        template <typename T>
-        UDPSend_t* bind(T* self) {
-            return bind(self, T::evt::on_udp_send); }
+        UDPSend_t* bind(const BoundEvt<uv_udp_send_cb>& evt) {
+            return bind(evt.tgt, evt.cb); }
 
         BufferMgr_t* mgr;
         UDPSend_t* push(uv_buf_t buf) {
@@ -196,14 +198,13 @@ namespace uvObj {
 
         StreamWrite_t(uv_stream_t* handle, bool finalizeSelf=false)
          : Base_t(handle, finalizeSelf), mgr(new BufferMgr_t())
-        { Base_t::setCallback<uv_write_cb>(mgr, &BufferMgr_t::evt::on_write); }
+        { Base_t::setCallback(BufferMgr_t::evt::on_write(mgr)); }
         ~StreamWrite_t() { delete mgr; }
 
         StreamWrite_t* bind(void* self, uv_write_cb cb) {
             if (mgr) mgr->bind(self, cb); return this; }
-        template <typename T>
-        StreamWrite_t* bind(T* self) {
-            return bind(self, T::evt::on_write); }
+        StreamWrite_t* bind(const BoundEvt<uv_write_cb>& evt) {
+            return bind(evt.tgt, evt.cb); }
 
         BufferMgr_t* mgr;
         StreamWrite_t* push(uv_buf_t buf) {
@@ -235,17 +236,16 @@ namespace uvObj {
 
     struct Work : Ref_t< uv_work_t > {
         typedef Ref_t< uv_work_t > Base_t;
+
         Work() {}
-        template <typename T>
-        Work(T* self, uv_loop_t* loop=NULL) {
-            queue(self, loop); }
+        Work(const BoundWorkEvt& evt, uv_loop_t* loop=NULL) {
+            queue(evt, loop); }
         void queue(uv_work_cb work_cb, uv_after_work_cb after_cb) {
             queue(NULL, work_cb, after_cb); }
         void queue(uv_loop_t* loop, uv_work_cb work_cb, uv_after_work_cb after_cb) {
             Base_t::_uvRes( uv_queue_work(_as_loop(loop), *this, work_cb, after_cb) ); }
-        template <typename T>
-        void queue(T* self, uv_loop_t* loop=NULL) {
-            Base_t::setData(self); queue(loop, T::evt::on_work, T::evt::on_after_work); }
+        void queue(const BoundWorkEvt& evt, uv_loop_t* loop=NULL) {
+            Base_t::setData(evt.tgt); queue(loop, evt.work, evt.after_work); }
     };
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -256,9 +256,8 @@ namespace uvObj {
         GetAddrInfo() { bind(blackhole()); }
         GetAddrInfo* bind(void* self, uv_getaddrinfo_cb cb) {
             setCallback(self, cb); return this; }
-        template <typename T>
-        GetAddrInfo* bind(T* self) {
-            return bind(self, T::evt::on_getaddrinfo); }
+        GetAddrInfo* bind(const BoundEvt<uv_getaddrinfo_cb>& evt) {
+            return bind(evt.tgt, evt.cb); }
 
         /* a little private api inconsistency */
         #ifdef _WIN32
