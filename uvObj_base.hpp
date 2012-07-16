@@ -23,8 +23,13 @@ namespace uvObj {
     inline uv_loop_t* _as_loop(uv_loop_t* loop=NULL) {
         return loop ? loop : uv_default_loop(); }
 
-    typedef void (*uv_buf_release_cb)(uv_buf_t& buf);
-    inline static void buf_free(uv_buf_t& buf) {
+    inline uv_buf_t buf_create(unsigned int len) {
+        char* buf = (char*)::malloc(len);
+        buf[len-1] = 0;
+        return uv_buf_init(buf, len); }
+    inline uv_buf_t buf_init(char* base, unsigned int len) {
+        return uv_buf_init(base, len); }
+    inline void buf_free(uv_buf_t& buf) {
         if (!buf.base || !buf.len) return;
         ::free(buf.base);
         buf.base = NULL;
@@ -118,15 +123,6 @@ namespace uvObj {
         void close(uv_close_cb cb) { uv_close(asHandle(), cb); }
         void close(const BoundEvt<uv_close_cb>& evt) {
             Base_t::setData(evt.tgt); close(evt.cb); }
-
-        static uv_buf_t buf_create(unsigned int len) {
-            char* buf = (char*)::malloc(len);
-            buf[len-1] = 0;
-            return buf_init(buf, len); }
-        static uv_buf_t buf_init(char* base, unsigned int len) {
-            return uv_buf_init(base, len); }
-        static void buf_free(uv_buf_t& buf) {
-            uvObj::buf_free(buf); }
     };
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/

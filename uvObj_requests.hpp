@@ -88,6 +88,7 @@ namespace uvObj {
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
+    typedef void (*uv_buf_release_cb)(uv_buf_t& buf);
     struct BufferManager {
         typedef std::vector<uv_buf_t> vec;
         typedef evt_t<BufferManager> evt;
