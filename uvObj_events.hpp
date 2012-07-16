@@ -263,7 +263,8 @@ namespace uvObj {
         typedef bool (T::*exit_mfn)(uv_process_t* handle, int exit_status, int term_signal);
         template <exit_mfn mfn>
         static void __exit(uv_process_t* handle, int exit_status, int term_signal) {
-            (evtTarget(handle)->*mfn)(handle, exit_status, term_signal); }
+            if ((evtTarget(handle)->*mfn)(handle, exit_status, term_signal)) {
+                delete handle; }}
 
         static BoundEvt<uv_exit_cb> on_exit(T* tgt) {
             return on_exit<&T::on_exit>(tgt); }

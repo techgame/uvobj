@@ -126,7 +126,7 @@ struct ConnectSink {
 
 struct ShutdownSink {
     typedef uvObj::evt_t<ShutdownSink> evt;
-    bool on_shutdown(uv_shutdown_t* req, int status) { delete this; }
+    bool on_shutdown(uv_shutdown_t* req, int status) { return true; }
 };
 
 struct UDPSendSink {
