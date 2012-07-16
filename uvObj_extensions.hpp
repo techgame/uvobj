@@ -127,7 +127,7 @@ namespace uvObj {
             if (v_args.back() != NULL)
                 v_args.push_back(NULL);
             opt.args = const_cast<char**>(v_args.size() ? &v_args[0] : NULL);
-            opt.stdio_count = v_stdio.size();
+            opt.stdio_count = (int) v_stdio.size();
             opt.stdio = v_stdio.size() ? &v_stdio[0] : NULL;
             _uvRes( uv_spawn(_as_loop(loop), *this, opt) ); }
         template <typename T>

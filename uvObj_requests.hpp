@@ -101,13 +101,13 @@ namespace uvObj {
         vec bufs;
 
         uv_buf_t* ptr() { return &bufs[0]; }
-        unsigned int size() { return bufs.size(); }
+        size_t size() { return bufs.size(); }
 
         void push(uv_buf_t buf) { bufs.push_back(buf); }
         void push(const char* buf) { push(buf, ::strlen(buf)); }
         void push_z(const char* buf) { push(buf, ::strlen(buf)+1); }
-        void push(const char* buf, unsigned int len) {
-            bufs.push_back(uv_buf_init(const_cast<char*>(buf), len)); }
+        void push(const char* buf, size_t len) {
+            bufs.push_back(uv_buf_init(const_cast<char*>(buf), (unsigned int)len)); }
         void bindCleanup(uv_buf_release_cb cb) {
             cb_release = cb; }
         void bindCleanup(bool useFree) {
