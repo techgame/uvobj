@@ -47,7 +47,7 @@ namespace uvObj {
         template <udp_send_mfn mfn>
         static void __udp_send(uv_udp_send_t* req, int status) {
             if ((evtTarget(req)->*mfn)(req, status)) {
-                delete req; }}
+                ::free(req); }}
 
         static BoundEvt<uv_udp_send_cb> on_udp_send(T* tgt) {
             return on_udp_send<&T::on_udp_send>(tgt); }
@@ -115,7 +115,7 @@ namespace uvObj {
         template <write_mfn mfn>
         static void __write(uv_write_t* req, int status) {
             if ((evtTarget(req)->*mfn)(req, status)) {
-                delete req; }}
+                ::free(req); }}
 
         static BoundEvt<uv_write_cb> on_write(T* tgt) {
             return on_write<&T::on_write>(tgt); }
@@ -128,7 +128,7 @@ namespace uvObj {
         template <connect_mfn mfn>
         static void __connect(uv_connect_t* req, int status) {
             if ((evtTarget(req)->*mfn)(req, status)) {
-                delete req; }}
+                ::free(req); }}
 
         static BoundEvt<uv_connect_cb> on_connect(T* tgt) {
             return on_connect<&T::on_connect>(tgt); }
@@ -141,7 +141,7 @@ namespace uvObj {
         template <shutdown_mfn mfn>
         static void __shutdown(uv_shutdown_t* req, int status) {
             if ((evtTarget(req)->*mfn)(req, status)) {
-                delete req; }}
+                ::free(req); }}
 
         static BoundEvt<uv_shutdown_cb> on_shutdown(T* tgt) {
             return on_shutdown<&T::on_shutdown>(tgt); }
@@ -166,7 +166,7 @@ namespace uvObj {
         template <close_mfn mfn>
         static void __close(uv_handle_t* handle) {
             if ((evtTarget(handle)->*mfn)(handle)) {
-                delete handle; }}
+                ::free(handle); }}
 
         static BoundEvt<uv_close_cb> on_close(T* tgt) {
             return on_close<&T::on_close>(tgt); }
@@ -251,7 +251,7 @@ namespace uvObj {
         template <getaddrinfo_mfn mfn>
         static void __getaddrinfo(uv_getaddrinfo_t* handle, int status, struct addrinfo* res) {
             if ((evtTarget(handle)->*mfn)(handle, status, res)) {
-                uv_freeaddrinfo(res); delete handle; }}
+                uv_freeaddrinfo(res); ::free(handle); }}
 
         static BoundEvt<uv_getaddrinfo_cb> on_getaddrinfo(T* tgt) {
             return on_getaddrinfo<&T::on_getaddrinfo>(tgt); }
@@ -264,7 +264,7 @@ namespace uvObj {
         template <exit_mfn mfn>
         static void __exit(uv_process_t* handle, int exit_status, int term_signal) {
             if ((evtTarget(handle)->*mfn)(handle, exit_status, term_signal)) {
-                delete handle; }}
+                ::free(handle); }}
 
         static BoundEvt<uv_exit_cb> on_exit(T* tgt) {
             return on_exit<&T::on_exit>(tgt); }
@@ -282,7 +282,7 @@ namespace uvObj {
         template <after_work_mfn mfn>
         static void __after_work(uv_work_t* req) {
             if ((evtTarget(req)->*mfn)(req)) {
-                delete req; }}
+                ::free(req); }}
 
         static BoundWorkEvt on_work(T* tgt) {
             return on_work<&T::on_work, &T::on_after_work>(tgt); }
@@ -295,7 +295,7 @@ namespace uvObj {
         template <fs_mfn mfn>
         static void __fs(uv_fs_t* req) {
             if ((evtTarget(req)->*mfn)(req)) {
-                uv_fs_req_cleanup(req); delete req; }}
+                uv_fs_req_cleanup(req); ::free(req); }}
 
         static BoundEvt<uv_fs_cb> on_fs(T* tgt) {
             return on_fs<&T::on_fs>(tgt); }

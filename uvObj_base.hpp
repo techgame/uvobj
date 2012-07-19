@@ -22,6 +22,27 @@
 namespace uvObj {
     inline uv_loop_t* _as_loop(uv_loop_t* loop=NULL) {
         return loop ? loop : uv_default_loop(); }
+    
+    template <typename uv_t>
+    inline static uv_t* __uv_create() {
+        uv_t* uv = (uv_t*) ::malloc(sizeof(uv_t));
+        ::memset(uv, 0, sizeof(uv_t));
+        return uv; }
+    
+    inline static void __uv_destroy(void* uv) {
+        ::free(uv); }
+    inline static void __uv_destroy_handle(uv_handle_t* uv) {
+        __uv_destroy(uv); }
+    template <typename uv_t, typename data_t>
+    static void __uv_delData(uv_t* uv) {
+        if (!uv) return;
+        delete reinterpret_cast<data_t>(uv->data);
+        uv->data = NULL; }    
+    template <typename data_t, typename uv_t>
+    inline static void __uv_destroyEx(uv_t* uv) {
+        if (!uv) return;
+        __uv_delData<data_t>(uv);
+        __uv_destroy(uv); }
 
     inline uv_buf_t buf_create(unsigned int len) {
         char* buf = (char*)::malloc(len);
@@ -67,19 +88,10 @@ namespace uvObj {
     struct Ref_t {
         typedef uv_type uv_t;
 
-        Ref_t() : uv(new uv_t) { ::memset(uv, 0, sizeof(uv_t)); }
+        Ref_t() : uv(__uv_create<uv_t>()) {}
         explicit Ref_t(uv_t* ref) : uv(ref) {}
-
         operator uv_t* () { return uv; }
-
-        static void __destroy(uv_handle_t* handle) {
-            delete reinterpret_cast<uv_t*>(handle); }
-        template <typename data_t>
-        static void __destroyEx(uv_handle_t* handle) {
-            delete reinterpret_cast<data_t>(handle->data);
-            handle->data = NULL;
-            delete reinterpret_cast<uv_t*>(handle); }
-        void destroy() { delete uv; uv = NULL; }
+        void destroy() { __uv_destroy(uv); uv = NULL; }
 
         uv_loop_t* loop() const { return uv->loop; }
         uv_err_t last_error() { return uv_last_error(loop()); }
@@ -104,10 +116,7 @@ namespace uvObj {
             uv->data = evt.tgt;
             uv->cb = evt.cb; }
         template <typename data_t>
-        void delData() {
-            if (!uv) return;
-            delete reinterpret_cast<data_t>(uv->data);
-            uv->data = NULL; }
+        void delData() { __uv_delData<data_t>(uv); }
 
         uv_t* uv;
     };
@@ -133,18 +142,32 @@ namespace uvObj {
         bool is_closing() { return Base_t::uv ? uv_is_closing(asHandle()) : true; }
         bool is_closed() { return is_closing() & 0x2; }
         void close(uv_close_cb cb=NULL) {
-            uv_close(asHandle(), cb ? cb : &Base_t::__destroy); }
+            uv_close(asHandle(), cb ? cb : &__uv_destroy_handle); }
         template <typename data_t>
         void closeEx(data_t* tgt=NULL) {
-            uv_close(asHandle(), &Base_t::template __destroyEx<data_t>); }
+            uv_close(asHandle(), &Base_t::template __uv_destroyEx<data_t>); }
         void close(const BoundEvt<uv_close_cb>& evt) {
             Base_t::setData(evt.tgt); close(evt.cb); }
+
+        static void __destroy_on_close(uv_handle_t* uv) {
+            Base_t::__destroy((uv_t*)uv); }
     };
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-    struct Mutex : Ref_t< uv_mutex_t > {
-        typedef Ref_t< uv_mutex_t > Base_t;
+    template <typename uv_type >
+    struct BasicRef_t {
+        typedef uv_type uv_t;
+        BasicRef_t() : uv(__uv_create<uv_t>()) {}
+        explicit BasicRef_t(uv_t* ref) : uv(ref) {}
+        operator uv_t* () { return uv; }
+        void destroy() { __uv_destroy(uv); uv = NULL; }
+        uv_t* uv;
+    };
+        
+    struct Mutex : BasicRef_t< uv_mutex_t > {
+        typedef BasicRef_t< uv_mutex_t > Base_t;
+        Mutex() : Base_t() { init(); }
         void init() { uvResult( uv_mutex_init(*this) ); }
         void destroy() { uv_mutex_destroy(*this); Base_t::destroy(); }
         void lock() { uv_mutex_lock(*this); }
@@ -152,8 +175,9 @@ namespace uvObj {
         void unlock() { uv_mutex_unlock(*this); }
     };
 
-    struct RWLock : Ref_t< uv_rwlock_t > {
-        typedef Ref_t< uv_rwlock_t > Base_t;
+    struct RWLock : BasicRef_t< uv_rwlock_t > {
+        typedef BasicRef_t< uv_rwlock_t > Base_t;
+        RWLock() : Base_t() { init(); }
         void init() { uvResult( uv_rwlock_init(*this) ); }
         void destroy() { uv_rwlock_destroy(*this); Base_t::destroy(); }
 
@@ -166,8 +190,9 @@ namespace uvObj {
         void wrunlock() { uv_rwlock_wrunlock(*this); }
     };
 
-    struct Semaphore : Ref_t< uv_sem_t > {
-        typedef Ref_t< uv_sem_t > Base_t;
+    struct Semaphore : BasicRef_t< uv_sem_t > {
+        typedef BasicRef_t< uv_sem_t > Base_t;
+        Semaphore(unsigned int value) : Base_t() { init(value); }
         void init(unsigned int value) { uvResult( uv_sem_init(*this, value) ); }
         void destroy() { uv_sem_destroy(*this); Base_t::destroy(); }
         void post() { uv_sem_post(*this); }

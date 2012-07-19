@@ -185,22 +185,22 @@ namespace uvObj {
         static uv_err_t chdir(const char* path) {
             return uv_chdir(path); }
 
-        static std::string cwd(size_t size=65536) {
-            char* buf = new char[size];
+        static std::string cwd(size_t size=16384) {
+            char* buf = (char*)::malloc(size);
             buf[0] = 0;
             if (0 != uv_cwd(buf, size).code)
                 buf[0] = 0;
             std::string res(buf);
-            delete [] buf; buf = NULL;
+            ::free(buf); buf = NULL;
             return res; }
 
-        static std::string exepath(size_t size=65536) {
-            char* buf = new char[size];
+        static std::string exepath(size_t size=16384) {
+            char* buf = (char*)::malloc(size);
             buf[0] = 0;
             if (0 != uv_exepath(buf, &size))
                 buf[0] = 0;
             std::string res(buf);
-            delete [] buf; buf = NULL;
+            ::free(buf); buf = NULL;
             return res; }
 
     };
