@@ -72,6 +72,13 @@ namespace uvObj {
 
         operator uv_t* () { return uv; }
 
+        static void __destroy(uv_handle_t* handle) {
+            delete reinterpret_cast<uv_t*>(handle); }
+        template <typename data_t>
+        static void __destroyEx(uv_handle_t* handle) {
+            delete reinterpret_cast<data_t>(handle->data);
+            handle->data = NULL;
+            delete reinterpret_cast<uv_t*>(handle); }
         void destroy() { delete uv; uv = NULL; }
 
         uv_loop_t* loop() const { return uv->loop; }
@@ -115,12 +122,21 @@ namespace uvObj {
             return reinterpret_cast<uv_handle_t*>(Base_t::uv); }
         inline operator uv_handle_t* () { return asHandle(); }
 
+        void destroy() {
+            if (Base_t::uv) return;
+            assert(is_closed());
+            Base_t::destroy(); }
         void ref() { uv_ref(asHandle()); }
         void unref() { uv_unref(asHandle()); }
 
-        bool is_active() { return uv_is_active(asHandle()); }
-        bool is_closing() { return uv_is_closing(asHandle()); }
-        void close(uv_close_cb cb) { uv_close(asHandle(), cb); }
+        bool is_active() { return Base_t::uv ? uv_is_active(asHandle()) : false; }
+        bool is_closing() { return Base_t::uv ? uv_is_closing(asHandle()) : true; }
+        bool is_closed() { return is_closing() & 0x2; }
+        void close(uv_close_cb cb=NULL) {
+            uv_close(asHandle(), cb ? cb : &Base_t::__destroy); }
+        template <typename data_t>
+        void closeEx(data_t* tgt=NULL) {
+            uv_close(asHandle(), &Base_t::template __destroyEx<data_t>); }
         void close(const BoundEvt<uv_close_cb>& evt) {
             Base_t::setData(evt.tgt); close(evt.cb); }
     };
