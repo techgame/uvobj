@@ -152,6 +152,7 @@ namespace uvObj {
         static void __destroy_on_close(uv_handle_t* uv) {
             Base_t::__destroy((uv_t*)uv); }
     };
+    typedef Handle_t<uv_handle_t> Handle;
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 

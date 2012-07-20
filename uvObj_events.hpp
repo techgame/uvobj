@@ -32,6 +32,8 @@ namespace uvObj {
 
     template <typename T>
     struct evt_t {
+        inline static T* evtTarget(void* arg) {
+            return reinterpret_cast<T*>(arg); }
         template <typename uv_t>
         inline static T* evtTarget(uv_t* ref) {
             return reinterpret_cast<T*>(ref->data); }
@@ -334,10 +336,10 @@ namespace uvObj {
             (evtTarget(arg)->*mfn)(handle); }
 
         static BoundEvt<uv_walk_cb> on_walk(T* tgt) {
-            return on_fs_poll<&T::on_walk>(tgt); }
+            return on_walk<&T::on_walk>(tgt); }
         template <walk_mfn mfn>
         static BoundEvt<uv_walk_cb> on_walk(T* tgt) {
-            return BoundEvt<uv_walk_cb>(tgt, &__fs_poll<mfn>); }
+            return BoundEvt<uv_walk_cb>(tgt, &__walk<mfn>); }
 
 
         /*~ Automatic destination type conversion ~~~~~~~~~~~~~ */
