@@ -138,8 +138,8 @@ namespace uvObj {
         void ref() { uv_ref(asHandle()); }
         void unref() { uv_unref(asHandle()); }
 
-        bool is_active() { return Base_t::uv ? uv_is_active(asHandle()) : false; }
-        bool is_closing() { return Base_t::uv ? uv_is_closing(asHandle()) : true; }
+        bool is_active() { return Base_t::uv ? !!uv_is_active(asHandle()) : false; }
+        bool is_closing() { return Base_t::uv ? !!uv_is_closing(asHandle()) : true; }
         bool is_closed() { return is_closing() & 0x2; }
         void close(uv_close_cb cb=NULL) {
             uv_close(asHandle(), cb ? cb : &__uv_destroy_handle); }
