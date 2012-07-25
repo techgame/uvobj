@@ -36,13 +36,13 @@ namespace uvObj {
             else return 0; }
         std::string name() {
             char buf[256] = {0};
-            if (sa.raw.sa_family == PF_INET)
+            if (sa.raw.sa_family == PF_INET) {
                 if (0 == uv_ip4_name(&sa.src, buf, sizeof(buf)))
                     return buf;
-            else if (sa.raw.sa_family == PF_INET6)
+            } else if (sa.raw.sa_family == PF_INET6) {
                 if (0 == uv_ip6_name(&sa.src6, buf, sizeof(buf)))
                     return buf;
-            return ""; }
+            } return ""; }
         std::string url(const char* schema=NULL, const char* path="") {
             const char* pathSep = (path && path[0]!='/') ? "/" : "";
             char buf[8192] = {0};

@@ -222,7 +222,7 @@ namespace uvObj {
 
         void write() {
             if (!mgr) return;
-            Base_t::_uvReqRes( uv_write(*this, _handle, mgr->ptr(), mgr->size(), Base_t::uv->cb) );
+            Base_t::_uvReqRes( uv_write(*this, _handle, mgr->ptr(), (int)mgr->size(), Base_t::uv->cb) );
             mgr = NULL; // allow mgr to look after itself now
             finalizeRequest(); }
         void write2(uv_stream_t* send_handle) {
