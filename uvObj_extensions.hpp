@@ -92,7 +92,7 @@ namespace uvObj {
         ProcessEx& clear_args() { v_args.empty(); return *this; }
         ProcessEx& args(const char* arg0, const char* arg1=NULL,
                       const char* arg2=NULL, const char* arg3=NULL) {
-            while (v_args.back() == NULL) v_args.pop_back();
+            while (v_args.size()>1 && v_args.back() == NULL) v_args.pop_back();
             /* var-args without the possibility of missing the last NULL */
             if (arg0) v_args.push_back(arg0);
             if (arg1) v_args.push_back(arg1);
@@ -100,7 +100,8 @@ namespace uvObj {
             if (arg3) v_args.push_back(arg3);
             return *this; }
         ProcessEx& arg(const char* arg) {
-            while (v_args.back() == NULL) v_args.pop_back();
+            while (v_args.size()>1 && v_args.back() == NULL)
+				v_args.pop_back();
             if (arg) v_args.push_back(arg);
             return *this; }
 
