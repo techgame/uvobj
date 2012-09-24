@@ -115,11 +115,11 @@ namespace uvObj {
             c.data.fd = fd;
             v_stdio.push_back(c);
             return *this; }
-        ProcessEx& pipe_stdio(int fd) { return add_stdio(UV_INHERIT_FD, fd); }
-        ProcessEx& pipe_stdin() { return pipe_stdio(0); }
-        ProcessEx& pipe_stdout() { return pipe_stdio(1); }
-        ProcessEx& pipe_stderr() { return pipe_stdio(2); }
-        ProcessEx& pipe_all() { return pipe_stdin().pipe_stdout().pipe_stderr(); }
+        ProcessEx& inherit_stdio(int fd) { return add_stdio(UV_INHERIT_FD, fd); }
+        ProcessEx& inherit_stdin() { return inherit_stdio(0); }
+        ProcessEx& inherit_stdout() { return inherit_stdio(1); }
+        ProcessEx& inherit_stderr() { return inherit_stdio(2); }
+        ProcessEx& inherit_all() { return inherit_stdin().inherit_stdout().inherit_stderr(); }
 
         void spawn(uv_exit_cb cb=NULL) { spawn(NULL, cb); }
         void spawn(uv_loop_t* loop, uv_exit_cb cb=NULL) {
