@@ -17,6 +17,7 @@ namespace uvObj {
         typedef Handle_t< uv_udp_t > Base_t;
         UDP(uv_loop_t* loop) : Base_t() { init(loop); }
         UDP() : Base_t() { init(); }
+        explicit UDP(uv_udp_t* ref) : Base_t(ref) { }
 
         void init() { init(NULL); }
         void init(uv_loop_t* loop) {

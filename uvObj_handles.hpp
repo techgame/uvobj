@@ -15,6 +15,7 @@ namespace uvObj {
         typedef Handle_t< uv_poll_t > Base_t;
         Poll(uv_loop_t* loop, int fd) : Base_t() { init(loop, fd); }
         Poll(int fd) : Base_t() { init(fd); }
+        explicit Poll(uv_poll_t* ref) : Base_t(ref) { }
 
         void init(int fd) { init(NULL, fd); }
         void init(uv_loop_t* loop, int fd) {
@@ -35,6 +36,9 @@ namespace uvObj {
 
     struct Process : Handle_t< uv_process_t > {
         typedef Handle_t< uv_process_t > Base_t;
+        Process() : Base_t() { }
+        explicit Process(uv_process_t* ref) : Base_t(ref) { }
+
         void spawn(const uv_process_options_t& options) {
             spawn(NULL, options); }
         void spawn(uv_loop_t* loop, const uv_process_options_t& options) {
@@ -51,6 +55,7 @@ namespace uvObj {
         typedef Handle_t< uv_prepare_t > Base_t;
         Prepare(uv_loop_t* loop) : Base_t() { init(loop); }
         Prepare() : Base_t() { init(); }
+        explicit Prepare(uv_prepare_t* ref) : Base_t(ref) { }
 
         void init() { init(NULL); }
         void init(uv_loop_t* loop) {
@@ -69,6 +74,7 @@ namespace uvObj {
         typedef Handle_t< uv_check_t > Base_t;
         Check(uv_loop_t* loop) : Base_t() { init(loop); }
         Check() : Base_t() { init(); }
+        explicit Check(uv_check_t* ref) : Base_t(ref) { }
 
         void init() { init(NULL); }
         void init(uv_loop_t* loop) {
@@ -87,6 +93,7 @@ namespace uvObj {
         typedef Handle_t< uv_idle_t > Base_t;
         Idle(uv_loop_t* loop) : Base_t() { init(loop); }
         Idle() : Base_t() { init(); }
+        explicit Idle(uv_idle_t* ref) : Base_t(ref) { }
 
         void init() { init(NULL); }
         void init(uv_loop_t* loop) {
@@ -107,6 +114,7 @@ namespace uvObj {
         Async(uv_async_cb cb) : Base_t() { init(cb); }
         Async(const BoundEvt<uv_async_cb>& evt, uv_loop_t* loop=NULL) : Base_t() {
             Base_t::setData(evt.tgt); init(loop, evt.cb); }
+        explicit Async(uv_async_t* ref) : Base_t(ref) { }
 
         void init(uv_async_cb cb) { init(NULL, cb); }
         void init(uv_loop_t* loop, uv_async_cb cb) {
@@ -123,6 +131,7 @@ namespace uvObj {
         typedef Handle_t< uv_timer_t > Base_t;
         Timer(uv_loop_t* loop) : Base_t() { init(loop); }
         Timer() : Base_t() { init(); }
+        explicit Timer(uv_timer_t* ref) : Base_t(ref) { }
 
         void init() { init(NULL); }
         void init(uv_loop_t* loop) {
