@@ -149,7 +149,7 @@ namespace uvObj {
             Base_t::_uvRes( uv_tcp_init(_as_loop(loop), *this) ); }
         void nodelay(bool enable) {
             Base_t::_uvRes( uv_tcp_nodelay(*this, enable) ); }
-        void keepalive(bool enable, unsigned int delay) {
+        void keepalive(bool enable, unsigned int delay=0) {
             Base_t::_uvRes( uv_tcp_keepalive(*this, enable, delay) ); }
         void simultaneous_accepts(bool enable) {
             Base_t::_uvRes( uv_tcp_simultaneous_accepts(*this, enable) ); }
