@@ -92,16 +92,16 @@ namespace uvObj {
         ProcessEx& clear_args() { v_args.empty(); return *this; }
         ProcessEx& args(const char* arg0, const char* arg1=NULL,
                       const char* arg2=NULL, const char* arg3=NULL) {
-            while (v_args.size()>1 && v_args.back() == NULL) v_args.pop_back();
             /* var-args without the possibility of missing the last NULL */
             if (arg0) v_args.push_back(arg0);
             if (arg1) v_args.push_back(arg1);
             if (arg2) v_args.push_back(arg2);
             if (arg3) v_args.push_back(arg3);
             return *this; }
+        ProcessEx& arg(const std::string& arg) {
+            v_args.push_back(arg);
+            return *this; }
         ProcessEx& arg(const char* arg) {
-            while (v_args.size()>1 && v_args.back() == NULL)
-				v_args.pop_back();
             if (arg) v_args.push_back(arg);
             return *this; }
 
@@ -125,9 +125,15 @@ namespace uvObj {
         void spawn(uv_exit_cb cb=NULL) { spawn(NULL, cb); }
         void spawn(uv_loop_t* loop, uv_exit_cb cb=NULL) {
             if (cb) opt.exit_cb = cb;
-            if (v_args.back() != NULL)
-                v_args.push_back(NULL);
-            opt.args = const_cast<char**>(v_args.size() ? &v_args[0] : NULL);
+            std::vector<const char*> args;
+            {
+                std::vector<std::string>::const_iterator
+                    iter=v_args.begin(),end=v_args.end();
+                for (;iter!=end;++iter)
+                    args.push_back(iter->c_str());
+                args.push_back(NULL);
+            }
+            opt.args = const_cast<char**>(args.size() ? &args[0] : NULL);
             opt.stdio_count = (int) v_stdio.size();
             opt.stdio = v_stdio.size() ? &v_stdio[0] : NULL;
             _uvRes( uv_spawn(_as_loop(loop), *this, opt) ); }
@@ -135,7 +141,7 @@ namespace uvObj {
             Base_t::setData(evt.tgt); spawn(loop, evt.cb); }
 
         uv_process_options_t opt;
-        std::vector<const char*> v_args;
+        std::vector<std::string> v_args;
         std::vector<uv_stdio_container_t> v_stdio;
     };
 }
