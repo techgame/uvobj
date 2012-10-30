@@ -347,14 +347,14 @@ namespace uvObj {
         /*~ uv_thread callback ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
         typedef void (T::*thread_mfn)(void);
         template <thread_mfn mfn>
-        static void __callback(void* arg) {
+        static void __context_cb(void* arg) {
             (evtTarget(arg)->*mfn)(); }
 
         static BoundEvt<thread_cb> on_thread(T* tgt) {
             return on_thread<&T::on_thread>(tgt); }
         template <thread_mfn mfn>
         static BoundEvt<thread_cb> on_thread(T* tgt) {
-            return BoundEvt<thread_cb>(tgt, &__callback<mfn>); }
+            return BoundEvt<thread_cb>(tgt, &__context_cb<mfn>); }
 
 
         /*~ Automatic destination type conversion ~~~~~~~~~~~~~ */
