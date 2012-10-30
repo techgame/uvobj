@@ -10,6 +10,9 @@
 #pragma once
 
 namespace uvObj {
+    typedef void (*once_cb)(void);
+    typedef void (*thread_cb)(void* arg);
+
     template <typename uv_cb>
     struct BoundEvt {
         void* tgt; uv_cb cb;
@@ -339,6 +342,19 @@ namespace uvObj {
         template <walk_mfn mfn>
         static BoundEvt<uv_walk_cb> on_walk(T* tgt) {
             return BoundEvt<uv_walk_cb>(tgt, &__walk<mfn>); }
+
+
+        /*~ uv_thread callback ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+        typedef void (T::*thread_mfn)(void);
+        template <thread_mfn mfn>
+        static void __callback(void* arg) {
+            (evtTarget(arg)->*mfn)(); }
+
+        static BoundEvt<thread_cb> on_thread(T* tgt) {
+            return on_thread<&T::on_thread>(tgt); }
+        template <thread_mfn mfn>
+        static BoundEvt<thread_cb> on_thread(T* tgt) {
+            return BoundEvt<thread_cb>(tgt, &__callback<mfn>); }
 
 
         /*~ Automatic destination type conversion ~~~~~~~~~~~~~ */

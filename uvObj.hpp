@@ -17,6 +17,7 @@
 #include "./uvObj_channels.hpp"
 #include "./uvObj_extensions.hpp"
 #include "./uvObj_filesystem.hpp"
+#include "./uvObj_threads.hpp"
 
 namespace uvObj {
 }

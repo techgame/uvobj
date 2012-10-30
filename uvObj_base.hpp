@@ -165,39 +165,4 @@ namespace uvObj {
         void destroy() { __uv_destroy(uv); uv = NULL; }
         uv_t* uv;
     };
-        
-    struct Mutex : BasicRef_t< uv_mutex_t > {
-        typedef BasicRef_t< uv_mutex_t > Base_t;
-        Mutex() : Base_t() { init(); }
-        void init() { uvResult( uv_mutex_init(*this) ); }
-        void destroy() { uv_mutex_destroy(*this); Base_t::destroy(); }
-        void lock() { uv_mutex_lock(*this); }
-        void trylock() { uvResult( uv_mutex_trylock(*this) ); }
-        void unlock() { uv_mutex_unlock(*this); }
-    };
-
-    struct RWLock : BasicRef_t< uv_rwlock_t > {
-        typedef BasicRef_t< uv_rwlock_t > Base_t;
-        RWLock() : Base_t() { init(); }
-        void init() { uvResult( uv_rwlock_init(*this) ); }
-        void destroy() { uv_rwlock_destroy(*this); Base_t::destroy(); }
-
-        void rdlock() { uv_rwlock_rdlock(*this); }
-        void tryrdlock() { uvResult( uv_rwlock_tryrdlock(*this) ); }
-        void rdunlock() { uv_rwlock_rdunlock(*this); }
-
-        void wrlock() { uv_rwlock_wrlock(*this); }
-        void trywrlock() { uvResult( uv_rwlock_trywrlock(*this) ); }
-        void wrunlock() { uv_rwlock_wrunlock(*this); }
-    };
-
-    struct Semaphore : BasicRef_t< uv_sem_t > {
-        typedef BasicRef_t< uv_sem_t > Base_t;
-        Semaphore(unsigned int value) : Base_t() { init(value); }
-        void init(unsigned int value) { uvResult( uv_sem_init(*this, value) ); }
-        void destroy() { uv_sem_destroy(*this); Base_t::destroy(); }
-        void post() { uv_sem_post(*this); }
-        void wait() { uv_sem_wait(*this); }
-        void trywait() { uvResult( uv_sem_trywait(*this) ); }
-    };
 }
