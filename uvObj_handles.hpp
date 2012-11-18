@@ -43,7 +43,7 @@ namespace uvObj {
             spawn(NULL, options); }
         void spawn(uv_loop_t* loop, const uv_process_options_t& options) {
             Base_t::_uvRes( uv_spawn(_as_loop(loop), *this, options) ); }
-        void kill(int signum) {
+        void kill(int signum=SIGTERM) {
             Base_t::_uvRes( uv_process_kill(*this, signum) ); }
         static void kill(int pid, int signum) {
             uvResult(uv_kill(pid, signum)); }
