@@ -105,6 +105,8 @@ namespace uvObj {
             if (arg) v_args.push_back(arg);
             return *this; }
 
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
         ProcessEx& clear_stdio() { v_stdio.empty(); return *this; }
         ProcessEx& add_stdio(uv_stdio_flags flags, uv_stream_t* stream) {
             uv_stdio_container_t c = {flags};
@@ -116,11 +118,56 @@ namespace uvObj {
             c.data.fd = fd;
             v_stdio.push_back(c);
             return *this; }
-        ProcessEx& inherit_stdio(int fd) { return add_stdio(UV_INHERIT_FD, fd); }
-        ProcessEx& inherit_stdin() { return inherit_stdio(0); }
-        ProcessEx& inherit_stdout() { return inherit_stdio(1); }
-        ProcessEx& inherit_stderr() { return inherit_stdio(2); }
+        ProcessEx& add_ignore(int fd=-1) { return add_stdio(UV_IGNORE, fd); }
+        ProcessEx& add_pipe(uv_pipe_t* pipe, bool readable, bool writeable) {
+            int f = UV_CREATE_PIPE | (readable?UV_READABLE_PIPE:0) | (writeable?UV_WRITABLE_PIPE:0);
+            return add_stdio((uv_stdio_flags)f, (uv_stream_t*)pipe); }
+        ProcessEx& add_rpipe(uv_pipe_t* pipe) { return add_pipe(pipe, true, false); }
+        ProcessEx& add_wpipe(uv_pipe_t* pipe) { return add_pipe(pipe, false, true); }
+        ProcessEx& add_rwpipe(uv_pipe_t* pipe) { return add_pipe(pipe, true, true); }
+
+        ProcessEx& inherit_stream(uv_stream_t* stream) {
+            return add_stdio(UV_INHERIT_STREAM, stream); }
+        ProcessEx& inherit_stdio(int fd) {
+            return add_stdio(UV_INHERIT_FD, fd); }
+        ProcessEx& inherit_stdin(bool inherit=true) {
+            return inherit ? inherit_stdio(0) : add_ignore(); }
+        ProcessEx& inherit_stdout(bool inherit=true) {
+            return inherit ? inherit_stdio(1) : add_ignore(); }
+        ProcessEx& inherit_stderr(bool inherit=true) {
+            return inherit ? inherit_stdio(2) : add_ignore(); }
         ProcessEx& inherit_all() { return inherit_stdin().inherit_stdout().inherit_stderr(); }
+
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+        void setUserId(uv_uid_t uid) {
+            if (uid) opt.flags |= UV_PROCESS_SETUID;
+            else opt.flags &= ~UV_PROCESS_SETUID;
+            opt.uid = uid; }
+        void setGroupId(uv_gid_t gid) {
+            if (gid) opt.flags |= UV_PROCESS_SETGID;
+            else opt.flags &= ~UV_PROCESS_SETGID;
+            opt.gid = gid; }
+
+        bool useVerbatimArguments() {
+            return !!(opt.flags & UV_PROCESS_WINDOWS_VERBATIM_ARGUMENTS); }
+        void setVerbatimArguments(bool verbatim=true) {
+            if (verbatim)
+                opt.flags |= UV_PROCESS_WINDOWS_VERBATIM_ARGUMENTS;
+            else opt.flags &= ~UV_PROCESS_WINDOWS_VERBATIM_ARGUMENTS; }
+
+        bool isDetached() { return !!(opt.flags & UV_PROCESS_DETACHED); }
+        void setDetached(bool detached=true) {
+            if (detached)
+                opt.flags |= UV_PROCESS_DETACHED;
+            else opt.flags &= ~UV_PROCESS_DETACHED; }
+
+        void setHideWindow(bool hide=true) {
+            if (hide)
+                opt.flags |= UV_PROCESS_WINDOWS_HIDE_WINDOW;
+            else opt.flags &= ~UV_PROCESS_WINDOWS_HIDE_WINDOW; }
+
+        //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
         void spawn(uv_exit_cb cb=NULL) { spawn(NULL, cb); }
         void spawn(uv_loop_t* loop, uv_exit_cb cb=NULL) {
