@@ -164,8 +164,8 @@ namespace uvObj {
 
         void setHideWindow(bool hide=true) {
             if (hide)
-                opt.flags |= UV_PROCESS_WINDOWS_HIDE_WINDOW;
-            else opt.flags &= ~UV_PROCESS_WINDOWS_HIDE_WINDOW; }
+                opt.flags |= UV_PROCESS_WINDOWS_HIDE;
+            else opt.flags &= ~UV_PROCESS_WINDOWS_HIDE; }
 
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
