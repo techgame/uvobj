@@ -12,6 +12,7 @@
 
 namespace uvObj {
     static void initLibrary() {
+        uv_default_loop();
         uv_disable_stdio_inheritance();
     }
 
