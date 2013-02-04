@@ -11,8 +11,8 @@
 #include "./uvObj_base.hpp"
 
 namespace uvObj {
-    struct FSPoll : Handle_t< uv_fs_poll_t > {
-        typedef Handle_t< uv_fs_poll_t > Base_t;
+    struct FSPoll : Handle_t< uv_fs_poll_t, UV_FS_POLL > {
+        typedef Handle_t< uv_fs_poll_t, UV_FS_POLL > Base_t;
         FSPoll(uv_loop_t* loop) : Base_t() { init(loop); }
         FSPoll() : Base_t() { init(); }
 
@@ -28,8 +28,8 @@ namespace uvObj {
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-    struct FSEvent : Handle_t< uv_fs_event_t > {
-        typedef Handle_t< uv_fs_event_t > Base_t;
+    struct FSEvent : Handle_t< uv_fs_event_t, UV_FS_EVENT > {
+        typedef Handle_t< uv_fs_event_t, UV_FS_EVENT > Base_t;
         void init(const char* filename, uv_fs_event_cb cb, int flags) {
             init(NULL, filename, cb, flags); }
         void init(const BoundEvt<uv_fs_event_cb>& evt, const char* filename, int flags) {
@@ -42,8 +42,8 @@ namespace uvObj {
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-    struct FS : Ref_t< uv_fs_t > {
-        typedef Ref_t< uv_fs_t > Base_t;
+    struct FS : Request_t< uv_fs_t, UV_FS > {
+        typedef Request_t< uv_fs_t, UV_FS > Base_t;
         uv_loop_t* _loop;
         FS(uv_loop_t* loop) : Base_t() { init(loop); }
         FS() : Base_t() { init(); }

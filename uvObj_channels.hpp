@@ -13,8 +13,8 @@
 #include "./uvObj_requests.hpp"
 
 namespace uvObj {
-    struct UDP : Handle_t< uv_udp_t > {
-        typedef Handle_t< uv_udp_t > Base_t;
+    struct UDP : Handle_t< uv_udp_t, UV_UDP > {
+        typedef Handle_t< uv_udp_t, UV_UDP > Base_t;
         UDP(uv_loop_t* loop) : Base_t() { init(loop); }
         UDP() : Base_t() { init(); }
         explicit UDP(uv_udp_t* ref) : Base_t(ref) { }
@@ -79,9 +79,9 @@ namespace uvObj {
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-    template <typename uv_t>
-    struct Stream_t : Handle_t< uv_t > {
-        typedef Handle_t< uv_t > Base_t;
+    template <typename uv_t,uv_handle_type handle_type>
+    struct Stream_t : Handle_t< uv_t, handle_type > {
+        typedef Handle_t< uv_t, handle_type > Base_t;
 
         explicit Stream_t(uv_t* ref) : Base_t(ref) {}
         explicit Stream_t(uv_stream_t* ref)
@@ -136,8 +136,8 @@ namespace uvObj {
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-    struct TCP : Stream_t< uv_tcp_t > {
-        typedef Stream_t< uv_tcp_t > Base_t;
+    struct TCP : Stream_t< uv_tcp_t, UV_TCP > {
+        typedef Stream_t< uv_tcp_t, UV_TCP > Base_t;
 
         explicit TCP(uv_handle_t* ref) : Base_t(ref) { }
         explicit TCP(uv_stream_t* ref) : Base_t(ref) { }
@@ -196,8 +196,8 @@ namespace uvObj {
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-    struct Pipe : Stream_t< uv_pipe_t > {
-        typedef Stream_t< uv_pipe_t > Base_t;
+    struct Pipe : Stream_t< uv_pipe_t, UV_NAMED_PIPE > {
+        typedef Stream_t< uv_pipe_t, UV_NAMED_PIPE > Base_t;
         explicit Pipe(uv_handle_t* ref) : Base_t(ref) { }
         explicit Pipe(uv_stream_t* ref) : Base_t(ref) { }
         Pipe(uv_loop_t* loop, int ipc=0) : Base_t() { init(loop, ipc); }
@@ -222,8 +222,8 @@ namespace uvObj {
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-    struct TTY : Stream_t< uv_tty_t > {
-        typedef Stream_t< uv_tty_t > Base_t;
+    struct TTY : Stream_t< uv_tty_t, UV_TTY > {
+        typedef Stream_t< uv_tty_t, UV_TTY > Base_t;
         explicit TTY(uv_handle_t* ref) : Base_t(ref) { }
         explicit TTY(uv_stream_t* ref) : Base_t(ref) { }
         TTY(uv_loop_t* loop, uv_file fd, int readable) : Base_t()

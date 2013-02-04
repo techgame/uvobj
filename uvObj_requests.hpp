@@ -13,11 +13,11 @@
 #include "./uvObj_events.hpp"
 
 namespace uvObj {
-    template <typename uv_t, typename uv_handle_t>
-    struct ReqRef_t : Ref_t< uv_t > {
-        ReqRef_t(uv_handle_t* handle_p, bool finalizeSelf=false)
+    template <typename uv_t, uv_req_type req_type, typename uv_handle_t>
+    struct RequestRef_t : Request_t< uv_t, req_type > {
+        RequestRef_t(uv_handle_t* handle_p, bool finalizeSelf=false)
          : _handle(handle_p), _finalizeSelf(finalizeSelf) {}
-        virtual ~ReqRef_t() {}
+        virtual ~RequestRef_t() {}
         virtual void finalizeRequest() {
             _handle = NULL;
             if (_finalizeSelf) delete this; }
@@ -28,8 +28,8 @@ namespace uvObj {
         bool _finalizeSelf;
     };
 
-    struct TCPConnectOp : ReqRef_t< uv_connect_t, uv_tcp_t > {
-        typedef ReqRef_t< uv_connect_t, uv_tcp_t > Base_t;
+    struct TCPConnectOp : RequestRef_t< uv_connect_t, UV_CONNECT, uv_tcp_t > {
+        typedef RequestRef_t< uv_connect_t, UV_CONNECT, uv_tcp_t > Base_t;
 
         TCPConnectOp(uv_tcp_t* handle, bool finalizeSelf=false)
          : Base_t(handle, finalizeSelf) { bind(blackhole()); }
@@ -52,8 +52,8 @@ namespace uvObj {
             finalizeRequest(); }
     };
 
-    struct PipeConnect : ReqRef_t< uv_connect_t, uv_pipe_t > {
-        typedef ReqRef_t< uv_connect_t, uv_pipe_t > Base_t;
+    struct PipeConnect : RequestRef_t< uv_connect_t, UV_CONNECT, uv_pipe_t > {
+        typedef RequestRef_t< uv_connect_t, UV_CONNECT, uv_pipe_t > Base_t;
 
         PipeConnect(uv_pipe_t* handle, bool finalizeSelf=false)
          : Base_t(handle, finalizeSelf) { bind(blackhole()); }
@@ -70,8 +70,8 @@ namespace uvObj {
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-    struct ShutdownOp : ReqRef_t< uv_shutdown_t, uv_stream_t > {
-        typedef ReqRef_t< uv_shutdown_t, uv_stream_t > Base_t;
+    struct ShutdownOp : RequestRef_t< uv_shutdown_t, UV_SHUTDOWN, uv_stream_t > {
+        typedef RequestRef_t< uv_shutdown_t, UV_SHUTDOWN, uv_stream_t > Base_t;
 
         ShutdownOp(uv_stream_t* handle, bool finalizeSelf=false)
          : Base_t(handle, finalizeSelf) { bind(blackhole()); }
@@ -150,8 +150,8 @@ namespace uvObj {
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
     template <typename BufferMgr_t>
-    struct UDPSend_t : ReqRef_t< uv_udp_send_t, uv_udp_t > {
-        typedef ReqRef_t< uv_udp_send_t, uv_udp_t > Base_t;
+    struct UDPSend_t : RequestRef_t< uv_udp_send_t, UV_UDP_SEND, uv_udp_t > {
+        typedef RequestRef_t< uv_udp_send_t, UV_UDP_SEND, uv_udp_t > Base_t;
 
         UDPSend_t(uv_udp_t* handle, bool finalizeSelf=false)
          : Base_t(handle, finalizeSelf), mgr(new BufferMgr_t())
@@ -195,8 +195,8 @@ namespace uvObj {
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
     template <typename BufferMgr_t>
-    struct StreamWrite_t : ReqRef_t< uv_write_t, uv_stream_t > {
-        typedef ReqRef_t< uv_write_t, uv_stream_t > Base_t;
+    struct StreamWrite_t : RequestRef_t< uv_write_t, UV_WRITE, uv_stream_t > {
+        typedef RequestRef_t< uv_write_t, UV_WRITE, uv_stream_t > Base_t;
 
         StreamWrite_t(uv_stream_t* handle, bool finalizeSelf=false)
          : Base_t(handle, finalizeSelf), mgr(new BufferMgr_t())
@@ -236,8 +236,8 @@ namespace uvObj {
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-    struct Work : Ref_t< uv_work_t > {
-        typedef Ref_t< uv_work_t > Base_t;
+    struct Work : Request_t< uv_work_t, UV_WORK > {
+        typedef Request_t< uv_work_t, UV_WORK > Base_t;
 
         Work() {}
         Work(const BoundWorkEvt& evt, uv_loop_t* loop=NULL) {
@@ -252,8 +252,8 @@ namespace uvObj {
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-    struct GetAddrInfo : Ref_t< uv_getaddrinfo_t > {
-        typedef Ref_t< uv_getaddrinfo_t > Base_t;
+    struct GetAddrInfo : Request_t< uv_getaddrinfo_t, UV_GETADDRINFO > {
+        typedef Request_t< uv_getaddrinfo_t, UV_GETADDRINFO > Base_t;
 
         GetAddrInfo() { bind(blackhole()); }
         GetAddrInfo* bind(void* self, uv_getaddrinfo_cb cb) {

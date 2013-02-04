@@ -22,13 +22,17 @@
 namespace uvObj {
     inline uv_loop_t* _as_loop(uv_loop_t* loop=NULL) {
         return loop ? loop : uv_default_loop(); }
-    
+
     template <typename uv_t>
-    inline static uv_t* __uv_create() {
-        uv_t* uv = (uv_t*) ::malloc(sizeof(uv_t));
-        ::memset(uv, 0, sizeof(uv_t));
-        return uv; }
-    
+    inline static uv_t* _createUVObj(size_t size=sizeof(uv_t)) {
+        void* uv = ::malloc(size); ::memset(uv, 0, size); return (uv_t*)uv; }
+    template <typename uv_t>
+    inline static uv_t* _createHandle(uv_handle_type type) {
+        return _createUVObj<uv_t>(uv_handle_size(type)); }
+    template <typename uv_t>
+    inline static uv_t* _createRequest(uv_req_type type) {
+        return _createUVObj<uv_t>(uv_req_size(type)); }
+
     inline static void __uv_destroy(void* uv) {
         ::free(uv); }
     inline static void __uv_destroy_handle(uv_handle_t* uv) {
@@ -37,7 +41,7 @@ namespace uvObj {
     static void __uv_delData(uv_t* uv) {
         if (!uv) return;
         delete reinterpret_cast<data_t>(uv->data);
-        uv->data = NULL; }    
+        uv->data = NULL; }
     template <typename data_t, typename uv_t>
     inline static void __uv_destroyEx(uv_t* uv) {
         if (!uv) return;
@@ -87,8 +91,6 @@ namespace uvObj {
     template <typename uv_type >
     struct Ref_t {
         typedef uv_type uv_t;
-
-        Ref_t() : uv(__uv_create<uv_t>()) {}
         explicit Ref_t(uv_t* ref) : uv(ref) {}
         operator uv_t* () { return uv; }
         void destroy() { __uv_destroy(uv); uv = NULL; }
@@ -121,10 +123,10 @@ namespace uvObj {
         uv_t* uv;
     };
 
-    template <typename uv_t >
+    template <typename uv_t, uv_handle_type handle_type >
     struct Handle_t : Ref_t< uv_t > {
         typedef Ref_t< uv_t > Base_t;
-        Handle_t() : Base_t() {}
+        Handle_t() : Base_t(_createHandle<uv_t>(handle_type)) {}
         explicit Handle_t(uv_t* ref) : Base_t(ref) {}
 
         inline uv_handle_t* asHandle() {
@@ -152,14 +154,17 @@ namespace uvObj {
         static void __destroy_on_close(uv_handle_t* uv) {
             Base_t::__destroy((uv_t*)uv); }
     };
-    typedef Handle_t<uv_handle_t> Handle;
 
-    /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+    template <typename uv_t, uv_req_type req_type >
+    struct Request_t : Ref_t< uv_t > {
+        typedef Ref_t< uv_t > Base_t;
+        Request_t() : Base_t(_createRequest<uv_t>(req_type)) {}
+        explicit Request_t(uv_t* ref) : Base_t(ref) {}
+    };
 
     template <typename uv_type >
     struct BasicRef_t {
         typedef uv_type uv_t;
-        BasicRef_t() : uv(__uv_create<uv_t>()) {}
         explicit BasicRef_t(uv_t* ref) : uv(ref) {}
         operator uv_t* () { return uv; }
         void destroy() { __uv_destroy(uv); uv = NULL; }

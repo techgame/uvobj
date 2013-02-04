@@ -11,8 +11,8 @@
 #include "./uvObj_base.hpp"
 
 namespace uvObj {
-    struct Poll : Handle_t< uv_poll_t > {
-        typedef Handle_t< uv_poll_t > Base_t;
+    struct Poll : Handle_t< uv_poll_t, UV_POLL > {
+        typedef Handle_t< uv_poll_t, UV_POLL > Base_t;
         Poll(uv_loop_t* loop, int fd) : Base_t() { init(loop, fd); }
         Poll(int fd) : Base_t() { init(fd); }
         explicit Poll(uv_poll_t* ref) : Base_t(ref) { }
@@ -34,8 +34,8 @@ namespace uvObj {
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-    struct Process : Handle_t< uv_process_t > {
-        typedef Handle_t< uv_process_t > Base_t;
+    struct Process : Handle_t< uv_process_t, UV_PROCESS > {
+        typedef Handle_t< uv_process_t, UV_PROCESS > Base_t;
         Process() : Base_t() { }
         explicit Process(uv_process_t* ref) : Base_t(ref) { }
 
@@ -51,8 +51,8 @@ namespace uvObj {
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-    struct Prepare : Handle_t< uv_prepare_t > {
-        typedef Handle_t< uv_prepare_t > Base_t;
+    struct Prepare : Handle_t< uv_prepare_t, UV_PREPARE > {
+        typedef Handle_t< uv_prepare_t, UV_PREPARE > Base_t;
         Prepare(uv_loop_t* loop) : Base_t() { init(loop); }
         Prepare() : Base_t() { init(); }
         explicit Prepare(uv_prepare_t* ref) : Base_t(ref) { }
@@ -70,8 +70,8 @@ namespace uvObj {
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-    struct Check : Handle_t< uv_check_t > {
-        typedef Handle_t< uv_check_t > Base_t;
+    struct Check : Handle_t< uv_check_t, UV_CHECK > {
+        typedef Handle_t< uv_check_t, UV_CHECK > Base_t;
         Check(uv_loop_t* loop) : Base_t() { init(loop); }
         Check() : Base_t() { init(); }
         explicit Check(uv_check_t* ref) : Base_t(ref) { }
@@ -89,8 +89,8 @@ namespace uvObj {
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-    struct Idle : Handle_t< uv_idle_t > {
-        typedef Handle_t< uv_idle_t > Base_t;
+    struct Idle : Handle_t< uv_idle_t, UV_IDLE > {
+        typedef Handle_t< uv_idle_t, UV_IDLE > Base_t;
         Idle(uv_loop_t* loop) : Base_t() { init(loop); }
         Idle() : Base_t() { init(); }
         explicit Idle(uv_idle_t* ref) : Base_t(ref) { }
@@ -108,8 +108,8 @@ namespace uvObj {
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-    struct Async : Handle_t< uv_async_t > {
-        typedef Handle_t< uv_async_t > Base_t;
+    struct Async : Handle_t< uv_async_t, UV_ASYNC > {
+        typedef Handle_t< uv_async_t, UV_ASYNC > Base_t;
         Async(uv_loop_t* loop, uv_async_cb cb) : Base_t() { init(loop, cb); }
         Async(uv_async_cb cb) : Base_t() { init(cb); }
         Async(const BoundEvt<uv_async_cb>& evt, uv_loop_t* loop=NULL) : Base_t() {
@@ -127,8 +127,8 @@ namespace uvObj {
 
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-    struct Timer : Handle_t< uv_timer_t > {
-        typedef Handle_t< uv_timer_t > Base_t;
+    struct Timer : Handle_t< uv_timer_t, UV_TIMER > {
+        typedef Handle_t< uv_timer_t, UV_TIMER > Base_t;
         Timer(uv_loop_t* loop) : Base_t() { init(loop); }
         Timer() : Base_t() { init(); }
         explicit Timer(uv_timer_t* ref) : Base_t(ref) { }

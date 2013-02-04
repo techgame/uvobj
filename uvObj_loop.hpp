@@ -12,6 +12,28 @@
 
 namespace uvObj {
     static void initLibrary() {
+        assert(sizeof(uv_tcp_t) == uv_handle_size(UV_TCP));
+        assert(sizeof(uv_udp_t) == uv_handle_size(UV_UDP));
+        assert(sizeof(uv_pipe_t) == uv_handle_size(UV_NAMED_PIPE));
+        assert(sizeof(uv_tty_t) == uv_handle_size(UV_TTY));
+        assert(sizeof(uv_poll_t) == uv_handle_size(UV_POLL));
+        assert(sizeof(uv_timer_t) == uv_handle_size(UV_TIMER));
+        assert(sizeof(uv_prepare_t) == uv_handle_size(UV_PREPARE));
+        assert(sizeof(uv_check_t) == uv_handle_size(UV_CHECK));
+        assert(sizeof(uv_idle_t) == uv_handle_size(UV_IDLE));
+        assert(sizeof(uv_async_t) == uv_handle_size(UV_ASYNC));
+        assert(sizeof(uv_process_t) == uv_handle_size(UV_PROCESS));
+        assert(sizeof(uv_fs_event_t) == uv_handle_size(UV_FS_EVENT));
+        //assert(sizeof(uv_fs_poll_t) == uv_handle_size(UV_FS_POLL)); // ABI-adaptation code in definition
+
+        assert(sizeof(uv_getaddrinfo_t) == uv_req_size(UV_GETADDRINFO));
+        assert(sizeof(uv_shutdown_t) == uv_req_size(UV_SHUTDOWN));
+        assert(sizeof(uv_write_t) == uv_req_size(UV_WRITE));
+        assert(sizeof(uv_connect_t) == uv_req_size(UV_CONNECT));
+        assert(sizeof(uv_udp_send_t) == uv_req_size(UV_UDP_SEND));
+        assert(sizeof(uv_fs_t) == uv_req_size(UV_FS)); // sizeof(uv_fs_t) does not match size reported by library -- check _DARWIN_FEATURE_64_BIT_INODE
+        assert(sizeof(uv_work_t) == uv_req_size(UV_WORK));
+
         uv_default_loop();
         uv_disable_stdio_inheritance();
     }
