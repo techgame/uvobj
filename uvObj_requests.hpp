@@ -133,13 +133,14 @@ namespace uvObj {
             // only cleanup if cb.send was not called
             return !cb.send; }
         bool on_write(uv_write_t* req, int status) {
-            if (cb.write) {
-                req->data = data; req->cb = cb.write;
-                cb.write(req, status);
+            uv_write_cb write = cb.write;
+            if (write) {
+                req->data = data; req->cb = write;
+                write(req, status);
             }
             finalize();
             // only cleanup if cb.write was not called
-            return !cb.write; }
+            return !write; }
 
     protected:
         void* data;
